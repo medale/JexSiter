@@ -1,0 +1,23 @@
+total 96
+drwxr-xr-x 9 bikramyogacolumbia bikramyogacolumbia  4096 Jan 23 06:40 .
+drwxr-x--x 9 bikramyogacolumbia bikramyogacolumbia  4096 Jan 23 06:40 ..
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   255 Feb  4  2012 .htaccess
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia 11432 Jul 13  2011 179879650a5f2ca03ea355efd519f7519787b9c2.php
+drwxr-xr-x 2 bikramyogacolumbia bikramyogacolumbia    25 Jun  4  2012 bycDocs
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   444 Jul 13  2011 css.css
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   198 Dec 23 06:06 favicon.ico
+drwxr-xr-x 2 bikramyogacolumbia bikramyogacolumbia  4096 Jan  2 10:26 firstFriday
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia    53 Jan 23 06:40 google7b77adc202b38913.html
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia     0 Jul 13  2011 google8f4c4f0e60257500.html_bak
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia    53 Jul 13  2011 googlecb4ebea69c738d73.html
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   307 Feb  4  2012 index.html.old
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   426 Feb  4  2012 index.php
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia   944 Jul 13  2011 missing.html
+drwxr-xr-x 2 bikramyogacolumbia bikramyogacolumbia  4096 Jan  9 12:55 newsletterArt
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia 23675 Jan 26 07:48 sitemap.xml
+-rw-r--r-- 1 bikramyogacolumbia bikramyogacolumbia  2996 Jan 26 07:48 sitemap.xml.gz
+drwxr-xr-x 6 bikramyogacolumbia bikramyogacolumbia  4096 Jan 25 21:55 wordpress
+drwxr-xr-x 4 bikramyogacolumbia bikramyogacolumbia    31 Oct  2 21:01 wp-admin
+drwxr-xr-x 4 bikramyogacolumbia bikramyogacolumbia    51 Dec  7 15:59 wp-content
+drwxr-xr-x 5 bikramyogacolumbia bikramyogacolumbia    54 Oct  2 21:02 wp-includes
+
