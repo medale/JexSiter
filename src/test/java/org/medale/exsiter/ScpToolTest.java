@@ -1,4 +1,4 @@
-package org.medale.backup;
+package org.medale.exsiter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.junit.Test;
+import org.medale.exsiter.ScpTool;
+import org.medale.exsiter.SshChannelCreator;
 
 import com.jcraft.jsch.JSchException;
 
@@ -28,7 +30,7 @@ public class ScpToolTest {
         }
         assertFalse(localFile.exists());
         ScpTool scpTool = new ScpTool();
-        SshChannelCreator channelCreator = SshChannelCreatorFactory.getSshChannelCreator();
+        SshChannelCreator channelCreator = SshChannelCreatorFactory.getDefaultSshChannelCreator();
         scpTool.setSshChannelCreator(channelCreator);
         String remoteLocation = "~/favicon.ico";
         boolean success = scpTool.scpFileFrom(remoteLocation, localLocation);
@@ -49,7 +51,7 @@ public class ScpToolTest {
         }
         assertFalse(localFile.exists());
         ScpTool scpTool = new ScpTool();
-        SshChannelCreator channelCreator = SshChannelCreatorFactory.getSshChannelCreator();
+        SshChannelCreator channelCreator = SshChannelCreatorFactory.getDefaultSshChannelCreator();
         scpTool.setSshChannelCreator(channelCreator);
         String remoteLocation = "~/bogusBogus.php";
         boolean success = scpTool.scpFileFrom(remoteLocation, localLocation);

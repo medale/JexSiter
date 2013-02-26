@@ -1,4 +1,4 @@
-package org.medale.backup;
+package org.medale.exsiter;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.medale.exsiter.SshProtocolUtils;
 
 public class SshProtocolUtilsTest {
 

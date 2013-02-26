@@ -1,4 +1,4 @@
-package org.medale.backup;
+package org.medale.exsiter;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
