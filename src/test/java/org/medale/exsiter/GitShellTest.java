@@ -1,16 +1,20 @@
 package org.medale.exsiter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TagCommand;
@@ -26,6 +30,8 @@ import org.junit.Test;
  * cd jex-repo<br>
  * git init<br>
  * 
+ * http://stackoverflow.com/questions/6861881/jgit-cannot-find-a-tutorial-or-
+ * simple-example
  */
 public class GitShellTest {
 
@@ -39,7 +45,7 @@ public class GitShellTest {
 	}
 
 	@Test
-	public void test() {
+	public void testGetDateTag() {
 		String dateTag = GitShell.getDateTag(testDate);
 		assertEquals("2013Feb27", dateTag);
 	}
@@ -49,10 +55,16 @@ public class GitShellTest {
 			GitAPIException {
 		String tmpDir = System.getProperty("java.io.tmpdir");
 		File testHome = new File(tmpDir, "test");
+		File cloneHome = new File(tmpDir, "clone");
 		if (testHome.exists()) {
 			FileUtils.deleteDirectory(testHome);
 		}
+		if (cloneHome.exists()) {
+			FileUtils.deleteDirectory(cloneHome);
+		}
 		testHome.mkdir();
+		cloneHome.mkdir();
+
 		System.out.println("Created temp test dir in "
 				+ testHome.getAbsolutePath());
 		File testGitHome = new File(testHome, ".git");
@@ -79,6 +91,22 @@ public class GitShellTest {
 		TagCommand tagCommand = git.tag();
 		String tagName = GitShell.getDateTag(testDate);
 		tagCommand.setName(tagName).call();
+
+		CloneCommand cloneCommand = Git.cloneRepository();
+		String testGitHomeUri = "file:///" + testGitHome.getAbsolutePath();
+		cloneCommand.setURI(testGitHomeUri);
+		cloneCommand.setDirectory(cloneHome).call();
+
+		File[] cloneDirFiles = cloneHome.listFiles();
+		List<File> expectedFiles = Arrays.asList(new File(cloneHome, "a.txt"),
+				new File(cloneHome, "b.txt"), new File(cloneHome, "c.txt"),
+				new File(cloneHome, ".git"));
+
+		Arrays.asList(cloneDirFiles);
+		assertEquals(expectedFiles.size(), cloneDirFiles.length);
+		for (File file : cloneDirFiles) {
+			assertTrue(expectedFiles.contains(file));
+		}
 	}
 
 	private void writeFiles(File testHome, String[] fileNames,
