@@ -15,7 +15,8 @@ public class SshShellCommandExecutorTest {
 
     @Test
     public void test() throws JSchException, IOException {
-        SshChannelCreator channelCreator = SshChannelCreatorFactory.getDefaultSshChannelCreator();
+        SshChannelCreator channelCreator = SshChannelCreatorFactory
+                .getDefaultSshChannelCreator();
         SshShellCommandExecutor commandExecutor = new SshShellCommandExecutor();
         commandExecutor.setSshChannelCreator(channelCreator);
         List<String> results = commandExecutor
