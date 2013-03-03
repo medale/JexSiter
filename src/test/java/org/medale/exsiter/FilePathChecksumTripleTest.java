@@ -59,4 +59,17 @@ public class FilePathChecksumTripleTest {
             assertEquals(path, results[FilePathChecksumTriple.FILE_PATH_INDEX]);
         }
     }
+
+    @Test
+    public void testGetInstance() {
+        String expectedMd5Hash = "56a329926a92460b9b6ac1377f610e48";
+        String expectedPath = "./web/newsletter/";
+        String expectedFileName = "grip-it.jpg";
+        String input = expectedMd5Hash + " " + expectedPath + expectedFileName;
+        FilePathChecksumTriple triple = FilePathChecksumTriple
+                .getInstance(input);
+        assertEquals(expectedMd5Hash, triple.getMd5Hash());
+        assertEquals(expectedPath, triple.getFilePath());
+        assertEquals(expectedFileName, triple.getFileName());
+    }
 }
