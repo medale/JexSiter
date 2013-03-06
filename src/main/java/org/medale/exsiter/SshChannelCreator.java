@@ -1,11 +1,7 @@
 package org.medale.exsiter;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.jcraft.jsch.Channel;
@@ -17,23 +13,18 @@ import com.jcraft.jsch.Session;
 
 public class SshChannelCreator {
 
-    private static final Logger LOGGER = Logger.getLogger(SshChannelCreator.class);
-
-    public static final String PROP_PRIVATE_KEY_LOC = "privateKeyLocation";
-    public static final String PROP_PRIVATE_KEY_PASS = "privateKeyPassphrase";
-    public static final String PROP_KNOWN_HOSTS_LOC = "knownHostsLocation";
-    public static final String PROP_USERNAME = "username";
-    public static final String PROP_HOSTNAME = "hostname";
-
-    private static final String[] REQUIRED_PROPERTIES = { PROP_PRIVATE_KEY_LOC, PROP_PRIVATE_KEY_PASS,
-            PROP_KNOWN_HOSTS_LOC, PROP_USERNAME, PROP_HOSTNAME };
+    private static final Logger LOGGER = Logger
+            .getLogger(SshChannelCreator.class);
 
     private static final String EXEC_CHANNEL_TYPE = "exec";
     private static final String SHELL_CHANNEL_TYPE = "shell";
 
     private Properties configProperties;
-    private String configPropertiesLocation;
     private Session session;
+
+    public void setConfigurationProperties(Properties configProperties) {
+        this.configProperties = configProperties;
+    }
 
     public void initializeSession() throws JSchException {
         session = getSessionForCurrentConfigurationSettings();
@@ -84,56 +75,23 @@ public class SshChannelCreator {
         return session != null && session.isConnected();
     }
 
-    protected Session getSessionForCurrentConfigurationSettings() throws JSchException {
-        configProperties = initializeSettingsFromConfigFile();
+    protected Session getSessionForCurrentConfigurationSettings()
+            throws JSchException {
         Session session = null;
         JSch jsch = new JSch();
-        String privateKeyLocation = configProperties.getProperty(PROP_PRIVATE_KEY_LOC);
-        String privateKeyPassphrase = configProperties.getProperty(PROP_PRIVATE_KEY_PASS);
+        String privateKeyLocation = configProperties
+                .getProperty(ApplicationConfiguration.PROP_PRIVATE_KEY_LOC);
+        String privateKeyPassphrase = configProperties
+                .getProperty(ApplicationConfiguration.PROP_PRIVATE_KEY_PASS);
         jsch.addIdentity(privateKeyLocation, privateKeyPassphrase);
-        String knownHostsLocation = configProperties.getProperty(PROP_KNOWN_HOSTS_LOC);
+        String knownHostsLocation = configProperties
+                .getProperty(ApplicationConfiguration.PROP_KNOWN_HOSTS_LOC);
         jsch.setKnownHosts(knownHostsLocation);
-        String username = configProperties.getProperty(PROP_USERNAME);
-        String hostname = configProperties.getProperty(PROP_HOSTNAME);
+        String username = configProperties
+                .getProperty(ApplicationConfiguration.PROP_USERNAME);
+        String hostname = configProperties
+                .getProperty(ApplicationConfiguration.PROP_HOSTNAME);
         session = jsch.getSession(username, hostname);
         return session;
-    }
-
-    protected Properties initializeSettingsFromConfigFile() {
-        Properties properties = null;
-        if (configPropertiesLocation != null) {
-            properties = new Properties();
-            Reader propsReader = null;
-            try {
-                propsReader = new FileReader(configPropertiesLocation);
-                properties.load(propsReader);
-                verfiyRequiredProperties(properties);
-
-            } catch (IOException e) {
-                String errMsg = "Unable to read ssh properties from " + configPropertiesLocation + " due to " + e;
-                LOGGER.error(errMsg, e);
-            } finally {
-                IOUtils.closeQuietly(propsReader);
-            }
-        }
-        return properties;
-    }
-
-    private void verfiyRequiredProperties(Properties properties) throws IOException {
-        for (String propertyKey : REQUIRED_PROPERTIES) {
-            String propertyValue = properties.getProperty(propertyKey);
-            assertNotNull(propertyValue, propertyKey);
-        }
-    }
-
-    protected void assertNotNull(String property, String propertyKey) throws IOException {
-        if (property == null) {
-            String explanation = "Unable to configure SSH connection due to missing property " + propertyKey;
-            throw new IOException(explanation);
-        }
-    }
-
-    public void setConfigPropertiesLocation(String configPropertiesLocation) {
-        this.configPropertiesLocation = configPropertiesLocation;
     }
 }

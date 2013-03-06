@@ -1,5 +1,7 @@
 package org.medale.exsiter;
 
+import java.io.IOException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -39,12 +41,15 @@ public class Main {
 
     /**
      * @param args
+     * @throws IOException
      * @throws org.apache.commons.cli.ParseException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Functionality functionalityToExecute = getFunctionalityToExecuteFromCommandLine(args);
         switch (functionalityToExecute) {
         case INIT:
+            InitializeCommand initCommand = new InitializeCommand();
+            initCommand.execute();
             break;
         case BACKUP:
             break;

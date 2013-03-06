@@ -1,15 +1,15 @@
 package org.medale.exsiter;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.util.Properties;
 
 import com.jcraft.jsch.JSchException;
 
 /**
- * Utility class that loads an SshChannelCreator based on properties file.
+ * Utility class that loads an SshChannelCreator based on application
+ * configuration.
  */
 public class SshChannelCreatorFactory {
-
-    private static final Logger LOGGER = Logger.getLogger(SshChannelCreatorFactory.class);
 
     /**
      * Configure SshChannelCreator from ${user.home}/.exsiter/application.conf
@@ -17,14 +17,14 @@ public class SshChannelCreatorFactory {
      * 
      * @return SshChannelCreator
      * @throws JSchException
+     * @throws IOException
      */
-    public static SshChannelCreator getDefaultSshChannelCreator() throws JSchException {
-        String homeDir = System.getProperty("user.home");
-        String configPropertiesLocation = homeDir + "/.exsiter/application.conf";
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Loading conf from " + configPropertiesLocation);
-        }
-        return SshChannelCreatorFactory.getSshChannelCreator(configPropertiesLocation);
+    public static SshChannelCreator getDefaultSshChannelCreator()
+            throws JSchException, IOException {
+        ApplicationConfiguration appConfig = new ApplicationConfiguration();
+        appConfig.loadConfiguration();
+        Properties configProps = appConfig.getConfiguration();
+        return SshChannelCreatorFactory.getSshChannelCreator(configProps);
     }
 
     /**
@@ -33,9 +33,10 @@ public class SshChannelCreatorFactory {
      * @return
      * @throws JSchException
      */
-    public static SshChannelCreator getSshChannelCreator(String configPropertiesLocation) throws JSchException {
+    public static SshChannelCreator getSshChannelCreator(Properties configProps)
+            throws JSchException {
         SshChannelCreator channelCreator = new SshChannelCreator();
-        channelCreator.setConfigPropertiesLocation(configPropertiesLocation);
+        channelCreator.setConfigurationProperties(configProps);
         channelCreator.initializeSession();
         channelCreator.openSession();
         return channelCreator;
