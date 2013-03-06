@@ -19,6 +19,7 @@ public class GitShell {
 
     public static final String GIT_DIR = ".git";
     public static final String ADD_ALL_PATTERN = ".";
+    public static final String TAG_PREFIX = "v";
 
     public static String getDateTag(Date date) {
         String datePattern = "yyyyMMMdd";
@@ -73,6 +74,20 @@ public class GitShell {
         return status;
     }
 
+    /**
+     * http://stackoverflow.com/questions/791959/how-to-use-git-to-download-a-
+     * particular-tag<br>
+     * 
+     * git tag -l lists all tags<br>
+     * git checkout tags/[tag name]<br>
+     * Create tar from specifc tag:<br>
+     * git archive --format=tar --remote=[hostname]:[path to repo] [tag name] >
+     * tagged.tar<br>
+     * 
+     * @param repo
+     * @param tagName
+     * @throws IOException
+     */
     public static void createNewTag(Repository repo, String tagName)
             throws IOException {
         Git git = new Git(repo);

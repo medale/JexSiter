@@ -9,9 +9,9 @@ public class ExsiterConstants {
     public static final String EXSITER_BACKUP_DIR = "exsiter-backup";
 
     /**
-     * Dir under EXSITER_BACKUP_DIR that stores web content
+     * Dir under EXSITER_BACKUP_DIR that stores remote content
      */
-    public static final String WEB_DIR = "target-web-dir";
+    public static final String REMOTE_CONTENT_DIR = "remote-content-dir";
 
     /**
      * File under EXSITER_BACKUP_DIR that stores map of filename to its latest

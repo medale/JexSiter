@@ -4,7 +4,13 @@ JexSiter
 # Design and Concept of Operations
 
 ## Manual Setup
-* Generate rsa public/private key pairs and set up on target machine
+* Generate rsa public/private key pairs (rsa.prv/rsa.pub) and set up on target machine
+ * On target machine in "user" account:
+  * mkdir ~/.ssh
+  * cd ~/.ssh
+  * cat rsa.pub > authorized_keys
+  * chmod 400 authorized_keys
+ * test from local machine: ssh -i rsa.prv user@remote-machine (prompts for private key password, not remote login password)
 
 
 ## Configuration

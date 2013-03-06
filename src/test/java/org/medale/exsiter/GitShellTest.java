@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -19,10 +20,12 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListTagCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.Before;
@@ -73,15 +76,92 @@ public class GitShellTest {
         writeFiles(testHome, fileNames, fileContent);
         Status status = GitShell.getStatus(repo);
         Set<String> untracked = status.getUntracked();
-        assertTrue(untracked.size() == 1);
-        String untrackedFile = untracked.iterator().next();
-        assertEquals(fileNames[0], untrackedFile);
+        assertContainsAll(Arrays.asList(fileNames), untracked);
+        Set<String> added = status.getAdded();
+        assertTrue(added.isEmpty());
 
         GitShell.addAllChanges(repo);
-        Status statusAfterAdd = GitShell.getStatus(repo);
-        untracked = statusAfterAdd.getUntracked();
-        System.out.println(untracked);
-        Set<String> added = statusAfterAdd.getAdded();
+        status = GitShell.getStatus(repo);
+        untracked = status.getUntracked();
+        assertTrue(untracked.isEmpty());
+        added = status.getAdded();
+        assertContainsAll(Arrays.asList(fileNames), added);
+    }
+
+    private void assertContainsAll(List<String> expectedFileNames,
+            Set<String> actualFileNames) {
+        assertEquals(expectedFileNames.size(), actualFileNames.size());
+        assertTrue(actualFileNames.containsAll(expectedFileNames));
+    }
+
+    @Test
+    public void testCommitAllChanges() throws IOException {
+        File testHome = getTestHome();
+        Repository repo = GitShell.getGitRepository(testHome);
+        GitShell.initGitRepository(repo);
+        String[] fileNames = { "a.txt" };
+        String[] fileContent = fileNames;
+        writeFiles(testHome, fileNames, fileContent);
+        GitShell.addAllChanges(repo);
+        String commitMessage = "Test commit";
+        GitShell.commitAllChanges(repo, commitMessage);
+        Status status = GitShell.getStatus(repo);
+        assertTrue(status.isClean());
+    }
+
+    @Test
+    public void testCreateNewTag() throws IOException {
+        File testHome = getTestHome();
+        Repository repo = GitShell.getGitRepository(testHome);
+        GitShell.initGitRepository(repo);
+        String[] fileNames = { "a.txt" };
+        String[] fileContent = fileNames;
+        writeFiles(testHome, fileNames, fileContent);
+        GitShell.addAllChanges(repo);
+        String commitMessage = "Test commit";
+        GitShell.commitAllChanges(repo, commitMessage);
+
+        String tagName = GitShell.TAG_PREFIX + "2013Feb27";
+        GitShell.createNewTag(repo, tagName);
+
+        Git git = new Git(repo);
+        ListTagCommand tagList = git.tagList();
+        try {
+            List<Ref> tags = tagList.call();
+            assertEquals(1, tags.size());
+            Ref ref = tags.get(0);
+            assertEquals("refs/tags/" + tagName, ref.getName());
+        } catch (GitAPIException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Test
+    public void testCloneRepoDir() throws IOException {
+        File testHome = getTestHome();
+        Repository repo = GitShell.getGitRepository(testHome);
+        GitShell.initGitRepository(repo);
+        String[] fileNames = { "a.txt" };
+        String[] fileContent = fileNames;
+        writeFiles(testHome, fileNames, fileContent);
+        GitShell.addAllChanges(repo);
+        String commitMessage = "Test commit";
+        GitShell.commitAllChanges(repo, commitMessage);
+
+        String cloneHomeLocation = "clone";
+        File expectedCloneDir = new File(testHome, cloneHomeLocation);
+        assertFalse(expectedCloneDir.exists());
+
+        GitShell.cloneRepoDir(testHome, testHome, cloneHomeLocation);
+
+        assertTrue(expectedCloneDir.exists());
+        Set<String> expectedFileSet = new HashSet<String>(
+                Arrays.asList(new String[] { "a.txt", ".git" }));
+
+        String[] actualFiles = expectedCloneDir.list();
+        Set<String> actualFileSet = new HashSet<String>(
+                Arrays.asList(actualFiles));
+        assertTrue(expectedFileSet.equals(actualFileSet));
     }
 
     @Test

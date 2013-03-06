@@ -24,11 +24,22 @@ import au.com.bytecode.opencsv.CSVWriter;
 public class MapStoreTest {
 
     private List<String> inputList = Arrays.asList(
-            "56a329926a92460b9b6ac1377f610e48 ./web/newsletter/grip-it.jpg",
-            "4d6ccea2e6e506ee68b1a793c477e617 ./web/newsletter/handstand.jpg");
+            "56a329926a92460b9b6ac1377f610e48  ./web/newsletter/grip-it.jpg",
+            "4d6ccea2e6e506ee68b1a793c477e617  ./web/newsletter/handstand.jpg");
 
     @Test
-    public void testStoreMapAndLoadMap() throws IOException {
+    public void testStoreMapAndLoadMapWithFile() throws IOException {
+        File csvFile = getTestCsvFile();
+        Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap = getTriplesMap();
+        MapStore.storeMap(csvFile, filePathAndNameToTripleMap);
+
+        Map<String, FilePathChecksumTriple> actualMap = MapStore
+                .loadMap(csvFile);
+        assertEquals(filePathAndNameToTripleMap, actualMap);
+    }
+
+    @Test
+    public void testStoreMapAndLoadMapWithWriter() throws IOException {
         Writer writer = null;
         File csvFile = getTestCsvFile();
         writer = new FileWriter(csvFile);

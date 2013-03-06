@@ -1,5 +1,8 @@
 package org.medale.exsiter;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -21,6 +24,18 @@ public class MapStore {
     public static final int FILE_AND_PATH_NAME_INDEX = 0;
     public static final int MD5_HASH_INDEX = 1;
 
+    public static void storeMap(File mapFile,
+            Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap)
+            throws IOException {
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(mapFile);
+            storeMap(writer, filePathAndNameToTripleMap);
+        } finally {
+            IOUtils.closeQuietly(writer);
+        }
+    }
+
     public static void storeMap(Writer writer,
             Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap) {
         CSVWriter csvWriter = null;
@@ -37,6 +52,19 @@ public class MapStore {
         } finally {
             IOUtils.closeQuietly(csvWriter);
         }
+    }
+
+    public static Map<String, FilePathChecksumTriple> loadMap(File csvMapFile)
+            throws IOException {
+        Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap = null;
+        Reader reader = null;
+        try {
+            reader = new FileReader(csvMapFile);
+            filePathAndNameToTripleMap = loadMap(reader);
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
+        return filePathAndNameToTripleMap;
     }
 
     public static Map<String, FilePathChecksumTriple> loadMap(Reader reader)

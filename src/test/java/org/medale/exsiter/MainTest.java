@@ -1,9 +1,14 @@
 package org.medale.exsiter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.Set;
 
 import org.junit.Test;
 import org.medale.exsiter.Main.Functionality;
+
+import com.jcraft.jsch.JSchException;
 
 public class MainTest {
 
@@ -11,20 +16,27 @@ public class MainTest {
     public void testGetFunctionalityToExecuteFromCommandLineInit() {
         String[][] args = { { "-init" }, { "-i" } };
         for (String[] currArgs : args) {
-            Functionality functionality = Main
+            Set<Functionality> functionality = Main
                     .getFunctionalityToExecuteFromCommandLine(currArgs);
-            assertEquals(Functionality.INIT, functionality);
+            assertTrue(functionality.size() == 1);
+            assertTrue(functionality.contains(Functionality.INIT));
         }
     }
 
     @Test
     public void testGetFunctionalityToExecuteFromCommandLineExplicitBackup() {
-        String[][] args = { { "-backup" }, { "-b" }, {} };
+        String[][] args = { { "-backup" }, { "-b" } };
         for (String[] currArgs : args) {
-            Functionality functionality = Main
+            Set<Functionality> functionality = Main
                     .getFunctionalityToExecuteFromCommandLine(currArgs);
-            assertEquals(Functionality.BACKUP, functionality);
+            assertTrue(functionality.size() == 1);
+            assertTrue(functionality.contains(Functionality.BACKUP));
         }
+    }
+
+    public void runInit() throws IOException, JSchException {
+        String[] args = { "-init", "-test" };
+        Main.main(args);
     }
 
 }

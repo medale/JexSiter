@@ -8,7 +8,7 @@ public class FilePathChecksumTriple {
 
     protected static final int MD5_HASH_INDEX = 0;
     protected static final int FILE_NAME_AND_PATH_INDEX = 1;
-    protected static final String SPACE = " ";
+    protected static final String DOUBLE_SPACE = "  ";
 
     protected static final int FILE_PATH_INDEX = 0;
     protected static final int FILE_NAME_INDEX = 1;
@@ -36,8 +36,8 @@ public class FilePathChecksumTriple {
     }
 
     public static FilePathChecksumTriple getInstance(
-            String spaceSeparatedMd5HashAndFileNameWithPath) {
-        String[] md5HashAndFileNameWithPath = splitSpaceSeparatedMd5HashAndFileNameWithPath(spaceSeparatedMd5HashAndFileNameWithPath);
+            String doubleSpaceSeparatedMd5HashAndFileNameWithPath) {
+        String[] md5HashAndFileNameWithPath = splitSpaceSeparatedMd5HashAndFileNameWithPath(doubleSpaceSeparatedMd5HashAndFileNameWithPath);
         String md5Hash = md5HashAndFileNameWithPath[MD5_HASH_INDEX];
         String fileNameWithPath = md5HashAndFileNameWithPath[FILE_NAME_AND_PATH_INDEX];
         String[] filePathAndName = geFilePathAndFileName(fileNameWithPath);
@@ -113,7 +113,7 @@ public class FilePathChecksumTriple {
             throw new IllegalArgumentException("Input must not be null");
         }
         String[] md5HashAndFileNameWithPath = spaceSeparatedMd5HashAndFileNameWithPath
-                .split(SPACE);
+                .split(DOUBLE_SPACE);
         if (md5HashAndFileNameWithPath.length != 2) {
             throw new IllegalArgumentException(
                     "Unable to parse md5hash and filepath/name from >>"
