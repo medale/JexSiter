@@ -45,34 +45,34 @@ public class GitShellTest {
 
     @Before
     public void setUp() {
-        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("EST"));
+        final Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("EST"));
         cal.set(2013, Calendar.FEBRUARY, 27);
-        testDate = cal.getTime();
+        this.testDate = cal.getTime();
     }
 
     @Test
     public void testGetDateTag() {
-        String dateTag = GitShell.getDateTag(testDate);
+        final String dateTag = GitShell.getDateTag(this.testDate);
         assertEquals("2013Feb27", dateTag);
     }
 
     @Test
     public void testInitGitRepo() throws IOException {
-        File testHome = getTestHome();
-        File expectedGitDir = new File(testHome, GitShell.GIT_DIR);
+        final File testHome = getTestHome();
+        final File expectedGitDir = new File(testHome, GitShell.GIT_DIR);
         assertFalse(expectedGitDir.exists());
-        Repository repo = GitShell.getGitRepository(testHome);
+        final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
         assertTrue(expectedGitDir.exists());
     }
 
     @Test
     public void testAddAllChanges() throws IOException {
-        File testHome = getTestHome();
-        Repository repo = GitShell.getGitRepository(testHome);
+        final File testHome = getTestHome();
+        final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
-        String[] fileNames = { "a.txt" };
-        String[] fileContent = fileNames;
+        final String[] fileNames = { "a.txt" };
+        final String[] fileContent = fileNames;
         writeFiles(testHome, fileNames, fileContent);
         Status status = GitShell.getStatus(repo);
         Set<String> untracked = status.getUntracked();
@@ -88,78 +88,78 @@ public class GitShellTest {
         assertContainsAll(Arrays.asList(fileNames), added);
     }
 
-    private void assertContainsAll(List<String> expectedFileNames,
-            Set<String> actualFileNames) {
+    private void assertContainsAll(final List<String> expectedFileNames,
+            final Set<String> actualFileNames) {
         assertEquals(expectedFileNames.size(), actualFileNames.size());
         assertTrue(actualFileNames.containsAll(expectedFileNames));
     }
 
     @Test
     public void testCommitAllChanges() throws IOException {
-        File testHome = getTestHome();
-        Repository repo = GitShell.getGitRepository(testHome);
+        final File testHome = getTestHome();
+        final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
-        String[] fileNames = { "a.txt" };
-        String[] fileContent = fileNames;
+        final String[] fileNames = { "a.txt" };
+        final String[] fileContent = fileNames;
         writeFiles(testHome, fileNames, fileContent);
         GitShell.addAllChanges(repo);
-        String commitMessage = "Test commit";
+        final String commitMessage = "Test commit";
         GitShell.commitAllChanges(repo, commitMessage);
-        Status status = GitShell.getStatus(repo);
+        final Status status = GitShell.getStatus(repo);
         assertTrue(status.isClean());
     }
 
     @Test
     public void testCreateNewTag() throws IOException {
-        File testHome = getTestHome();
-        Repository repo = GitShell.getGitRepository(testHome);
+        final File testHome = getTestHome();
+        final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
-        String[] fileNames = { "a.txt" };
-        String[] fileContent = fileNames;
+        final String[] fileNames = { "a.txt" };
+        final String[] fileContent = fileNames;
         writeFiles(testHome, fileNames, fileContent);
         GitShell.addAllChanges(repo);
-        String commitMessage = "Test commit";
+        final String commitMessage = "Test commit";
         GitShell.commitAllChanges(repo, commitMessage);
 
-        String tagName = GitShell.TAG_PREFIX + "2013Feb27";
+        final String tagName = GitShell.TAG_PREFIX + "2013Feb27";
         GitShell.createNewTag(repo, tagName);
 
-        Git git = new Git(repo);
-        ListTagCommand tagList = git.tagList();
+        final Git git = new Git(repo);
+        final ListTagCommand tagList = git.tagList();
         try {
-            List<Ref> tags = tagList.call();
+            final List<Ref> tags = tagList.call();
             assertEquals(1, tags.size());
-            Ref ref = tags.get(0);
+            final Ref ref = tags.get(0);
             assertEquals("refs/tags/" + tagName, ref.getName());
-        } catch (GitAPIException e) {
+        } catch (final GitAPIException e) {
             throw new IOException(e);
         }
     }
 
     @Test
     public void testCloneRepoDir() throws IOException {
-        File testHome = getTestHome();
-        Repository repo = GitShell.getGitRepository(testHome);
+        final File testHome = getTestHome();
+        final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
-        String[] fileNames = { "a.txt" };
-        String[] fileContent = fileNames;
+        final String[] fileNames = { "a.txt" };
+        final String[] fileContent = fileNames;
         writeFiles(testHome, fileNames, fileContent);
         GitShell.addAllChanges(repo);
-        String commitMessage = "Test commit";
+        final String commitMessage = "Test commit";
         GitShell.commitAllChanges(repo, commitMessage);
 
-        String cloneHomeLocation = "clone";
-        File expectedCloneDir = new File(testHome, cloneHomeLocation);
+        final String cloneHomeLocation = "clone";
+        final File expectedCloneDir = new File(testHome, cloneHomeLocation);
         assertFalse(expectedCloneDir.exists());
 
         GitShell.cloneRepoDir(testHome, testHome, cloneHomeLocation);
 
         assertTrue(expectedCloneDir.exists());
-        Set<String> expectedFileSet = new HashSet<String>(
+        final Set<String> expectedFileSet = new HashSet<String>(
                 Arrays.asList(new String[] { "a.txt", ".git" }));
 
-        String[] actualFiles = expectedCloneDir.list();
-        Set<String> actualFileSet = new HashSet<String>(
+        final String[] actualFiles = expectedCloneDir.list();
+        final Set<String> actualFileSet = new HashSet<String>(
                 Arrays.asList(actualFiles));
         assertTrue(expectedFileSet.equals(actualFileSet));
     }
@@ -168,30 +168,34 @@ public class GitShellTest {
     public void testingJGitApi() throws IOException, NoFilepatternException,
             GitAPIException {
 
-        File testHome = getTestHome();
-        File cloneHome = new File(testHome, "clone");
+        final File testHome = getTestHome();
+        final File cloneHome = new File(testHome, "clone");
         if (cloneHome.exists()) {
             FileUtils.deleteDirectory(cloneHome);
         }
-        testHome.mkdir();
-        cloneHome.mkdir();
+
+        final boolean testHomeCreated = testHome.mkdir();
+        final boolean cloneHomeCreated = cloneHome.mkdir();
+        if (!testHomeCreated || !cloneHomeCreated) {
+            throw new IOException("Unable to create test dirs.");
+        }
 
         System.out.println("Created temp test dir in "
                 + testHome.getAbsolutePath());
-        File testGitHome = new File(testHome, ".git");
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repo = builder.setGitDir(testGitHome).build();
+        final File testGitHome = new File(testHome, ".git");
+        final FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        final Repository repo = builder.setGitDir(testGitHome).build();
         repo.create();
-        Git git = new Git(repo);
-        String[] fileNames = { "a.txt", "b.txt", "c.txt" };
-        String[] fileContent = fileNames;
+        final Git git = new Git(repo);
+        final String[] fileNames = { "a.txt", "b.txt", "c.txt" };
+        final String[] fileContent = fileNames;
         writeFiles(testHome, fileNames, fileContent);
         AddCommand addCommand = git.add();
         addCommand.addFilepattern(".").call();
         CommitCommand commitCommand = git.commit();
         commitCommand.setMessage("Test commit").call();
 
-        String[] newContent = { "updateA", "updateB", "updateC" };
+        final String[] newContent = { "updateA", "updateB", "updateC" };
         writeFiles(testHome, fileNames, newContent);
         // must create new addCommand and commitCommand!
         addCommand = git.add();
@@ -199,42 +203,43 @@ public class GitShellTest {
         commitCommand = git.commit();
         commitCommand.setMessage("Commit after update.").call();
 
-        TagCommand tagCommand = git.tag();
-        String tagName = GitShell.getDateTag(testDate);
+        final TagCommand tagCommand = git.tag();
+        final String tagName = GitShell.getDateTag(this.testDate);
         tagCommand.setName(tagName).call();
 
-        CloneCommand cloneCommand = Git.cloneRepository();
-        String testGitHomeUri = "file:///" + testGitHome.getAbsolutePath();
+        final CloneCommand cloneCommand = Git.cloneRepository();
+        final String testGitHomeUri = "file:///"
+                + testGitHome.getAbsolutePath();
         cloneCommand.setURI(testGitHomeUri);
         cloneCommand.setDirectory(cloneHome).call();
 
-        File[] cloneDirFiles = cloneHome.listFiles();
-        List<File> expectedFiles = Arrays.asList(new File(cloneHome, "a.txt"),
-                new File(cloneHome, "b.txt"), new File(cloneHome, "c.txt"),
-                new File(cloneHome, ".git"));
+        final File[] cloneDirFiles = cloneHome.listFiles();
+        final List<File> expectedFiles = Arrays.asList(new File(cloneHome,
+                "a.txt"), new File(cloneHome, "b.txt"), new File(cloneHome,
+                "c.txt"), new File(cloneHome, ".git"));
 
         Arrays.asList(cloneDirFiles);
         assertEquals(expectedFiles.size(), cloneDirFiles.length);
-        for (File file : cloneDirFiles) {
+        for (final File file : cloneDirFiles) {
             assertTrue(expectedFiles.contains(file));
         }
     }
 
     private File getTestHome() throws IOException {
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        File testHome = new File(tmpDir, "test-git-func");
+        final String tmpDir = System.getProperty("java.io.tmpdir");
+        final File testHome = new File(tmpDir, "test-git-func");
         if (testHome.exists()) {
             FileUtils.deleteDirectory(testHome);
         }
         return testHome;
     }
 
-    private void writeFiles(File testHome, String[] fileNames,
-            String[] fileContent) throws IOException {
+    private void writeFiles(final File testHome, final String[] fileNames,
+            final String[] fileContent) throws IOException {
         for (int i = 0; i < fileContent.length; i++) {
-            String fileName = fileNames[i];
-            String content = fileContent[i] + "\n";
-            File file = new File(testHome, fileName);
+            final String fileName = fileNames[i];
+            final String content = fileContent[i] + "\n";
+            final File file = new File(testHome, fileName);
             FileUtils.writeStringToFile(file, content);
         }
     }

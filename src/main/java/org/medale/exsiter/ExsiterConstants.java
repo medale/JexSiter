@@ -19,4 +19,9 @@ public class ExsiterConstants {
      */
     public static final String FILENAME_TO_HASH_MAP = "fileNameToHashMap.csv";
 
+    /**
+     * Default character encoding
+     */
+    public static final String DEFAULT_ENCODING = "UTF-8";
+
 }

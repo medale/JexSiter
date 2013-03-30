@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -14,10 +15,12 @@ import org.apache.log4j.Logger;
  * user.home/.exsiter/application.conf file and verifies that required
  * properties are set.
  */
-public class ApplicationConfiguration {
+public final class ApplicationConfiguration {
 
     private static final Logger LOGGER = Logger
             .getLogger(ApplicationConfiguration.class);
+
+    public static final String DEFAULT_CONFIG_DIR = ".exsiter";
 
     public static final String PROP_PRIVATE_KEY_LOC = "privateKeyLocation";
     public static final String PROP_PRIVATE_KEY_PASS = "privateKeyPassphrase";
@@ -26,37 +29,52 @@ public class ApplicationConfiguration {
     public static final String PROP_HOSTNAME = "hostname";
     public static final String PROP_BACKUP_ROOT_DIR = "backupRootDir";
 
-    public static final String[] REQUIRED_PROPERTIES = { PROP_PRIVATE_KEY_LOC,
+    static final String[] REQUIRED_PROPERTIES = { PROP_PRIVATE_KEY_LOC,
             PROP_PRIVATE_KEY_PASS, PROP_KNOWN_HOSTS_LOC, PROP_USERNAME,
             PROP_HOSTNAME, PROP_BACKUP_ROOT_DIR };
 
-    private String configurationLocation;
+    private final String configurationLocation;
     private Properties configurationProperties;
 
+    /**
+     * Loads application configuration from default
+     * user.home/.exsiter/application.conf file.
+     */
     public ApplicationConfiguration() {
-        String homeDir = System.getProperty("user.home");
-        configurationLocation = homeDir + File.separator + ".exsiter"
-                + File.separator + "application.conf";
+        final String homeDir = System.getProperty("user.home");
+        this.configurationLocation = homeDir + File.separator
+                + DEFAULT_CONFIG_DIR + File.separator + "application.conf";
     }
 
+    public ApplicationConfiguration(final String configurationLocation) {
+        this.configurationLocation = configurationLocation;
+        new Random();
+    }
+
+    /**
+     * Loads config from current configurationLocation and verifies presence of
+     * required props.
+     * 
+     * @throws IOException
+     */
     public void loadConfiguration() throws IOException {
-        this.configurationProperties = getConfigurationFromFile(configurationLocation);
-        verfiyRequiredProperties(configurationProperties);
+        this.configurationProperties = getConfigurationFromFile(this.configurationLocation);
+        verfiyRequiredProperties(this.configurationProperties);
     }
 
     public Properties getConfiguration() {
-        return configurationProperties;
+        return this.configurationProperties;
     }
 
-    protected Properties getConfigurationFromFile(String configurationLocation)
-            throws IOException {
-        Properties properties = new Properties();
+    protected Properties getConfigurationFromFile(
+            final String configurationLocation) throws IOException {
+        final Properties properties = new Properties();
         Reader propsReader = null;
         try {
             propsReader = new FileReader(configurationLocation);
             properties.load(propsReader);
-        } catch (IOException e) {
-            String errMsg = "Unable to read application properties from "
+        } catch (final IOException e) {
+            final String errMsg = "Unable to read application properties from "
                     + configurationLocation + " due to " + e;
             LOGGER.error(errMsg, e);
             throw new IOException(errMsg, e);
@@ -66,18 +84,18 @@ public class ApplicationConfiguration {
         return properties;
     }
 
-    protected static void verfiyRequiredProperties(Properties properties)
+    protected static void verfiyRequiredProperties(final Properties properties)
             throws IOException {
-        for (String propertyKey : REQUIRED_PROPERTIES) {
-            String propertyValue = properties.getProperty(propertyKey);
+        for (final String propertyKey : REQUIRED_PROPERTIES) {
+            final String propertyValue = properties.getProperty(propertyKey);
             assertNotNull(propertyValue, propertyKey);
         }
     }
 
-    protected static void assertNotNull(String property, String propertyKey)
-            throws IOException {
+    protected static void assertNotNull(final String property,
+            final String propertyKey) throws IOException {
         if (property == null) {
-            String explanation = "Unable to configure SSH connection due to missing property "
+            final String explanation = "Unable to configure SSH connection due to missing property "
                     + propertyKey;
             throw new IOException(explanation);
         }

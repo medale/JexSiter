@@ -22,43 +22,43 @@ public class SshChannelCreator {
     private Properties configProperties;
     private Session session;
 
-    public void setConfigurationProperties(Properties configProperties) {
+    public void setConfigurationProperties(final Properties configProperties) {
         this.configProperties = configProperties;
     }
 
     public void initializeSession() throws JSchException {
-        session = getSessionForCurrentConfigurationSettings();
+        this.session = getSessionForCurrentConfigurationSettings();
     }
 
     public void openSession() throws JSchException {
-        if (session != null) {
-            if (session.isConnected()) {
-                session.disconnect();
+        if (this.session != null) {
+            if (this.session.isConnected()) {
+                this.session.disconnect();
             }
-            session.connect();
+            this.session.connect();
         } else {
-            String errMsg = "Session must be initialized before opening.";
+            final String errMsg = "Session must be initialized before opening.";
             LOGGER.error(errMsg);
             throw new JSchException(errMsg);
         }
     }
 
     public ChannelExec getChannelExec() throws JSchException {
-        ChannelExec execChannel = (ChannelExec) getChannel(EXEC_CHANNEL_TYPE);
+        final ChannelExec execChannel = (ChannelExec) getChannel(EXEC_CHANNEL_TYPE);
         return execChannel;
     }
 
     public ChannelShell getChannelShell() throws JSchException {
-        ChannelShell shellChannel = (ChannelShell) getChannel(SHELL_CHANNEL_TYPE);
+        final ChannelShell shellChannel = (ChannelShell) getChannel(SHELL_CHANNEL_TYPE);
         return shellChannel;
     }
 
-    protected Channel getChannel(String channelType) throws JSchException {
+    protected Channel getChannel(final String channelType) throws JSchException {
         Channel channel = null;
         if (isOpenSession()) {
-            channel = session.openChannel(channelType);
+            channel = this.session.openChannel(channelType);
         } else {
-            String errMsg = "JSch session must be open to get channel.";
+            final String errMsg = "JSch session must be open to get channel.";
             LOGGER.error(errMsg);
             throw new JSchException(errMsg);
         }
@@ -67,29 +67,29 @@ public class SshChannelCreator {
 
     public void closeSession() {
         if (isOpenSession()) {
-            session.disconnect();
+            this.session.disconnect();
         }
     }
 
     public boolean isOpenSession() {
-        return session != null && session.isConnected();
+        return (this.session != null) && this.session.isConnected();
     }
 
     protected Session getSessionForCurrentConfigurationSettings()
             throws JSchException {
         Session session = null;
-        JSch jsch = new JSch();
-        String privateKeyLocation = configProperties
+        final JSch jsch = new JSch();
+        final String privateKeyLocation = this.configProperties
                 .getProperty(ApplicationConfiguration.PROP_PRIVATE_KEY_LOC);
-        String privateKeyPassphrase = configProperties
+        final String privateKeyPassphrase = this.configProperties
                 .getProperty(ApplicationConfiguration.PROP_PRIVATE_KEY_PASS);
         jsch.addIdentity(privateKeyLocation, privateKeyPassphrase);
-        String knownHostsLocation = configProperties
+        final String knownHostsLocation = this.configProperties
                 .getProperty(ApplicationConfiguration.PROP_KNOWN_HOSTS_LOC);
         jsch.setKnownHosts(knownHostsLocation);
-        String username = configProperties
+        final String username = this.configProperties
                 .getProperty(ApplicationConfiguration.PROP_USERNAME);
-        String hostname = configProperties
+        final String hostname = this.configProperties
                 .getProperty(ApplicationConfiguration.PROP_HOSTNAME);
         session = jsch.getSession(username, hostname);
         return session;

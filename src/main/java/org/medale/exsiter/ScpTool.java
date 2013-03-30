@@ -31,38 +31,44 @@ public class ScpTool {
     private long fileSizeInBytes;
     private String fileName;
 
-    public void setSshChannelCreator(SshChannelCreator channelCreator) {
+    public void setSshChannelCreator(final SshChannelCreator channelCreator) {
         this.channelCreator = channelCreator;
     }
 
-    public boolean scpFileFrom(String remoteFileLocation, String localFileLocation) {
+    public boolean scpFileFrom(final String remoteFileLocation,
+            final String localFileLocation) {
         boolean fileSuccessfullyCopied = false;
         try {
             // exec 'scp -f remoteLocation'
-            String scpFromCommand = SCP_FROM_PREFIX + remoteFileLocation;
-            ChannelExec execChannel = channelCreator.getChannelExec();
+            final String scpFromCommand = SCP_FROM_PREFIX + remoteFileLocation;
+            final ChannelExec execChannel = this.channelCreator
+                    .getChannelExec();
             execChannel.setCommand(scpFromCommand);
 
             // get I/O streams for remote scp
-            OutputStream out = execChannel.getOutputStream();
-            BufferedInputStream bin = new BufferedInputStream(execChannel.getInputStream());
+            final OutputStream out = execChannel.getOutputStream();
+            final BufferedInputStream bin = new BufferedInputStream(
+                    execChannel.getInputStream());
 
             execChannel.connect();
 
             SshProtocolUtils.replyWithOK(out);
             if (nextByteIndicatesSingleFileCopyMode(bin)) {
-                filePermissions = readFilePermissions(bin);
-                fileSizeInBytes = readFileSizeInBytes(bin);
-                fileName = readFileName(bin);
+                this.filePermissions = readFilePermissions(bin);
+                this.fileSizeInBytes = readFileSizeInBytes(bin);
+                this.fileName = readFileName(bin);
                 SshProtocolUtils.replyWithOK(out);
-                SshProtocolUtils.copyByteCountBytesFromInputStreamToLocalFile(bin, localFileLocation, fileSizeInBytes);
-                SshProtocolUtils.readExpectedByte(bin, SshProtocolUtils.NULL_BYTE);
+                SshProtocolUtils.copyByteCountBytesFromInputStreamToLocalFile(
+                        bin, localFileLocation, this.fileSizeInBytes);
+                SshProtocolUtils.readExpectedByte(bin,
+                        SshProtocolUtils.NULL_BYTE);
                 SshProtocolUtils.replyWithOK(out);
                 fileSuccessfullyCopied = true;
             }
             execChannel.disconnect();
-        } catch (Exception e) {
-            String errMsg = "Unable to copy file " + remoteFileLocation + " due to " + e;
+        } catch (final Exception e) {
+            final String errMsg = "Unable to copy file " + remoteFileLocation
+                    + " due to " + e;
             LOGGER.error(errMsg);
             fileSuccessfullyCopied = false;
         }
@@ -70,21 +76,22 @@ public class ScpTool {
     }
 
     public String getFilePermissions() {
-        return filePermissions;
+        return this.filePermissions;
     }
 
     public long getFileSizeInBytes() {
-        return fileSizeInBytes;
+        return this.fileSizeInBytes;
     }
 
     public String getFileName() {
-        return fileName;
+        return this.fileName;
     }
 
-    protected boolean nextByteIndicatesSingleFileCopyMode(BufferedInputStream bin) throws IOException {
+    protected boolean nextByteIndicatesSingleFileCopyMode(
+            final BufferedInputStream bin) throws IOException {
         boolean singleFileCopyMode = false;
         if (bin != null) {
-            int nextByteRead = bin.read();
+            final int nextByteRead = bin.read();
             if (nextByteRead == SshProtocolUtils.SINGLE_FILE_COPY) {
                 singleFileCopyMode = true;
             } else if (nextByteRead == SshProtocolUtils.WARN) {
@@ -95,46 +102,56 @@ public class ScpTool {
         return singleFileCopyMode;
     }
 
-    protected String readFilePermissions(BufferedInputStream bin) throws IOException {
-        StringBuilder filePermissions = new StringBuilder();
-        byte[] filePerms = new byte[4];
-        bin.read(filePerms);
-        for (byte permByte : filePerms) {
-            int permInt = SshProtocolUtils.convertByteCharDigitToInt(permByte);
+    protected String readFilePermissions(final BufferedInputStream bin)
+            throws IOException {
+        final StringBuilder filePermissions = new StringBuilder();
+        final byte[] filePerms = new byte[4];
+        final int bytesRead = bin.read(filePerms);
+        if (bytesRead != filePerms.length) {
+            final String errMsg = "Unable to read required number of bytes for file permissions.";
+            throw new IOException(errMsg);
+        }
+        for (final byte permByte : filePerms) {
+            final int permInt = SshProtocolUtils
+                    .convertByteCharDigitToInt(permByte);
             filePermissions.append(permInt);
         }
-        SshProtocolUtils.readExpectedByte(bin, SshProtocolUtils.END_OF_FIELD_MARKER);
+        SshProtocolUtils.readExpectedByte(bin,
+                SshProtocolUtils.END_OF_FIELD_MARKER);
         return filePermissions.toString();
     }
 
-    protected long readFileSizeInBytes(BufferedInputStream bin) throws IOException {
+    protected long readFileSizeInBytes(final BufferedInputStream bin)
+            throws IOException {
         long fileSizeInBytes = 0L;
         boolean validFileSize = true;
         boolean fileSizeTerminatorFound = false;
         while (validFileSize && !fileSizeTerminatorFound) {
-            int byteRead = bin.read();
+            final int byteRead = bin.read();
             if (byteRead == SshProtocolUtils.EOF) {
                 validFileSize = false;
             } else if (byteRead == SshProtocolUtils.END_OF_FIELD_MARKER) {
                 fileSizeTerminatorFound = true;
             } else {
                 fileSizeInBytes = fileSizeInBytes * 10;
-                fileSizeInBytes += SshProtocolUtils.convertByteCharDigitToInt(byteRead);
+                fileSizeInBytes += SshProtocolUtils
+                        .convertByteCharDigitToInt(byteRead);
             }
         }
         if (!validFileSize) {
-            String errMsg = "Unable to read file size due to premature end of input stream.";
+            final String errMsg = "Unable to read file size due to premature end of input stream.";
             throw new IOException(errMsg);
         }
         return fileSizeInBytes;
     }
 
-    private String readFileName(BufferedInputStream bin) throws IOException {
-        StringBuilder fileName = new StringBuilder();
+    private String readFileName(final BufferedInputStream bin)
+            throws IOException {
+        final StringBuilder fileName = new StringBuilder();
         boolean validFileName = true;
         boolean fileNameTerminatorFound = false;
         while (validFileName && !fileNameTerminatorFound) {
-            int byteRead = bin.read();
+            final int byteRead = bin.read();
             if (byteRead == SshProtocolUtils.EOF) {
                 validFileName = false;
             } else if (byteRead == SshProtocolUtils.NEWLINE) {

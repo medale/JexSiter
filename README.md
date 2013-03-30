@@ -4,19 +4,24 @@ JexSiter
 # Design and Concept of Operations
 
 ## Manual Setup
-* Generate rsa public/private key pairs (rsa.prv/rsa.pub) and set up on target machine
+* Generate rsa public/private key pairs (id_rsa/id_rsa.pub) and set up on target machine
+ * ssh-keygen -t rsa -C "your-email@server" - generates id_rsa and id_rsa.pub (in designated directory with password)
+ * scp id_rsa.pub to target machine
  * On target machine in "user" account:
   * mkdir ~/.ssh
+  * mv id_rsa.pub ~/.ssh
   * cd ~/.ssh
-  * cat rsa.pub > authorized_keys
+  * cat id_rsa.pub > authorized_keys
   * chmod 400 authorized_keys
- * test from local machine: ssh -i rsa.prv user@remote-machine (prompts for private key password, not remote login password)
-
+  * rm id_rsa.pub
+  * cd ..
+  * chmod 700 .ssh
+ * test from local machine: ssh -i id_rsa user@remote-machine (prompts for private key password, not remote login password)
 
 ## Configuration
 * Default config under $USER_HOME/.exsiter/application.conf
- * privateKeyLocation - rsa private key (must set up as .ssh/authorized_keys on target machine)
- * privateKeyPassphrase - password for rsa private key
+ * privateKeyLocation - id_rsa private key (id_rsa.pub must set up as .ssh/authorized_keys on target machine)
+ * privateKeyPassphrase - password for id_rsa private key
  * knownHostsLocation - must contain target machine (log in to target via ssh, could point to $USER_HOME/.ssh/known_hosts)
  * username - username for target machine
  * hostname - full host name of target machine
@@ -52,6 +57,21 @@ JexSiter
 * Run Exsiter via Quartz
 * Execute search through current $gitDir/exsiter-backup/target-web-dir/ for suspicious content and flag those files
 * Download and analyze logs for suspicious content?
+
+# Integration Test
+Set up local user/fake directories. Use $USER_HOME/.exsiter/test/test-application.conf to contain test key/password.
+
+Note: Ubuntu openssh server config at /etc/ssh/sshd_config had the following line, which must be commented out to make JSch
+work
+!#HostKey /etc/ssh/ssh_host_ecdsa_key
+
+Do a local login via ssh localhost and then copy .ssh/known_hosts to $USER_HOME/.exsiter/test/known_hosts
+
+# Design
+* org.medale.exsiter.Main - main entry point with two different types of functionality
+ * init - brand-new Exsiter setup. Downloads target files for the first time to initialize local repository
+ * backup - incremental backup against existing local repository
+ * Either function can be run in test mode
  
  
 

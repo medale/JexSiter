@@ -22,18 +22,22 @@ public class ScpToolTest {
 
     @Test
     public void testScpFromSunnyDay() throws JSchException, IOException {
-        String localLocation = "/tmp/favicon.ico";
-        File localFile = new File(localLocation);
+        final String localLocation = "/tmp/favicon.ico";
+        final File localFile = new File(localLocation);
         if (localFile.exists()) {
-            localFile.delete();
+            final boolean deleted = localFile.delete();
+            if (!deleted) {
+                throw new IOException("Unable to delete " + localFile);
+            }
         }
         assertFalse(localFile.exists());
-        ScpTool scpTool = new ScpTool();
-        SshChannelCreator channelCreator = SshChannelCreatorFactory
+        final ScpTool scpTool = new ScpTool();
+        final SshChannelCreator channelCreator = SshChannelCreatorFactory
                 .getDefaultSshChannelCreator();
         scpTool.setSshChannelCreator(channelCreator);
-        String remoteLocation = "~/favicon.ico";
-        boolean success = scpTool.scpFileFrom(remoteLocation, localLocation);
+        final String remoteLocation = "~/favicon.ico";
+        final boolean success = scpTool.scpFileFrom(remoteLocation,
+                localLocation);
         assertTrue(success);
         assertEquals("0644", scpTool.getFilePermissions());
         assertEquals(198, scpTool.getFileSizeInBytes());
@@ -44,18 +48,22 @@ public class ScpToolTest {
 
     @Test
     public void testScpFromBogusRemoteFile() throws JSchException, IOException {
-        String localLocation = "/tmp/favicon.ico";
-        File localFile = new File(localLocation);
+        final String localLocation = "/tmp/favicon.ico";
+        final File localFile = new File(localLocation);
         if (localFile.exists()) {
-            localFile.delete();
+            final boolean deleted = localFile.delete();
+            if (!deleted) {
+                throw new IOException("Unable to delete " + localFile);
+            }
         }
         assertFalse(localFile.exists());
-        ScpTool scpTool = new ScpTool();
-        SshChannelCreator channelCreator = SshChannelCreatorFactory
+        final ScpTool scpTool = new ScpTool();
+        final SshChannelCreator channelCreator = SshChannelCreatorFactory
                 .getDefaultSshChannelCreator();
         scpTool.setSshChannelCreator(channelCreator);
-        String remoteLocation = "~/bogusBogus.php";
-        boolean success = scpTool.scpFileFrom(remoteLocation, localLocation);
+        final String remoteLocation = "~/bogusBogus.php";
+        final boolean success = scpTool.scpFileFrom(remoteLocation,
+                localLocation);
         assertFalse(success);
         channelCreator.closeSession();
     }

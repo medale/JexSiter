@@ -1,6 +1,5 @@
 package org.medale.exsiter;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class SshProtocolUtils {
      * @param out
      * @throws IOException
      */
-    public static void replyWithOK(OutputStream out) throws IOException {
+    public static void replyWithOK(final OutputStream out) throws IOException {
         out.write(OK);
         out.flush();
     }
@@ -59,35 +58,60 @@ public class SshProtocolUtils {
      * @param byteCharDigit
      * @return
      */
-    public static int convertByteCharDigitToInt(int byteCharDigit) {
+    public static int convertByteCharDigitToInt(final int byteCharDigit) {
         return byteCharDigit - CONVERT_BYTE_DIGIT_TO_INT_OFFSET;
     }
 
-    public static void readExpectedByte(InputStream in, int expectedByte) throws IOException {
-        int actualByte = in.read();
+    public static void readExpectedByte(final InputStream in,
+            final int expectedByte) throws IOException {
+        final int actualByte = in.read();
         if (actualByte != expectedByte) {
-            String errMsg = "Scp protocol expected >>" + expectedByte + "<<. Actually read >>" + actualByte + "<<.";
+            final String errMsg = "Scp protocol expected >>" + expectedByte
+                    + "<<. Actually read >>" + actualByte + "<<.";
             throw new IOException(errMsg);
         }
     }
 
-    public static void copyByteCountBytesFromInputStreamToLocalFile(BufferedInputStream bin, String localFileLocation,
-            long byteCount) throws IOException {
-        FileOutputStream fos = null;
+    /**
+     * Parent directories in localFileLocation must already exist or IOException
+     * is thrown.
+     * 
+     * @param in
+     * @param localFileLocation
+     * @param byteCount
+     * @throws IOException
+     */
+    public static void copyByteCountBytesFromInputStreamToLocalFile(
+            final InputStream in, final String localFileLocation,
+            final long byteCount) throws IOException {
+        FileOutputStream fout = null;
+        final File localFile = new File(localFileLocation);
+        final File parentDir = localFile.getParentFile();
+        if (parentDir != null) {
+            // null indicates no parent - would write to current dir
+            if (!parentDir.exists()) {
+                final String errMsg = "Unable to write to local file "
+                        + localFileLocation
+                        + " because parent directory does not exist.";
+                throw new IOException(errMsg);
+            }
+        }
         try {
-            fos = new FileOutputStream(new File(localFileLocation));
-            copyByteCountBytesFromInputStreamToOutputStream(bin, fos, byteCount, DEFAULT_BUFFER_SIZE);
+            fout = new FileOutputStream(new File(localFileLocation));
+            copyByteCountBytesFromInputStreamToOutputStream(in, fout,
+                    byteCount, DEFAULT_BUFFER_SIZE);
         } finally {
-            IOUtils.closeQuietly(fos);
+            IOUtils.closeQuietly(fout);
         }
     }
 
-    public static void copyByteCountBytesFromInputStreamToOutputStream(InputStream in, OutputStream out,
-            long byteCount, int bufferSize) throws IOException {
-        byte[] byteBuffer = new byte[bufferSize];
+    public static void copyByteCountBytesFromInputStreamToOutputStream(
+            final InputStream in, final OutputStream out, final long byteCount,
+            final int bufferSize) throws IOException {
+        final byte[] byteBuffer = new byte[bufferSize];
         long remainingBytesToCopy = byteCount;
         boolean validCopy = true;
-        int offset = 0;
+        final int offset = 0;
         while (validCopy && (remainingBytesToCopy > 0)) {
             int length = 0;
             if (remainingBytesToCopy < bufferSize) {
@@ -95,7 +119,7 @@ public class SshProtocolUtils {
             } else {
                 length = bufferSize;
             }
-            int bytesReadCount = in.read(byteBuffer, offset, length);
+            final int bytesReadCount = in.read(byteBuffer, offset, length);
             if (bytesReadCount == SshProtocolUtils.EOF) {
                 // file should be terminated with null byte not EOF!
                 validCopy = false;

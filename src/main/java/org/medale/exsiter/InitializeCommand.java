@@ -19,17 +19,17 @@ public class InitializeCommand {
             .getLogger(InitializeCommand.class);
 
     public void execute() throws IOException, JSchException {
-        ApplicationConfiguration appConfig = new ApplicationConfiguration();
+        final ApplicationConfiguration appConfig = new ApplicationConfiguration();
         execute(appConfig);
     }
 
-    public void execute(ApplicationConfiguration appConfig) throws IOException,
-            JSchException {
+    public void execute(final ApplicationConfiguration appConfig)
+            throws IOException, JSchException {
         appConfig.loadConfiguration();
-        Properties configProps = appConfig.getConfiguration();
+        final Properties configProps = appConfig.getConfiguration();
 
         LOGGER.info("Creating backup directory...");
-        File backupDir = createBackupDirButThrowExceptionIfItAlreadyExists(configProps);
+        final File backupDir = createBackupDirButThrowExceptionIfItAlreadyExists(configProps);
         LOGGER.info("Created backup directory at "
                 + backupDir.getAbsolutePath());
 
@@ -40,63 +40,85 @@ public class InitializeCommand {
         LOGGER.info("Downloading and storing file names and their md5 sums (this might take a while ~1min)...");
         downloadFilenameToHashMap(configProps, backupDir);
 
-        LOGGER.info("Starting bulk file download...");
-        performInitialBulkFileDownload(configProps, backupDir);
+        LOGGER.info("Starting file download...");
+        performInitialFileDownload(configProps, backupDir);
 
         LOGGER.info("Committing all changes to repo...");
         addAndCommitChanges(backupDir);
     }
 
-    private void initGitRepo(File backupDir) throws IOException {
-        Repository repo = GitShell.getGitRepository(backupDir);
+    protected void initGitRepo(final File backupDir) throws IOException {
+        final Repository repo = GitShell.getGitRepository(backupDir);
         GitShell.initGitRepository(repo);
     }
 
-    private void downloadFilenameToHashMap(Properties configProps,
-            File backupDir) throws JSchException, IOException {
-        SshChannelCreator channelCreator = SshChannelCreatorFactory
+    protected void downloadFilenameToHashMap(final Properties configProps,
+            final File backupDir) throws JSchException, IOException {
+        final SshChannelCreator channelCreator = SshChannelCreatorFactory
                 .getSshChannelCreator(configProps);
-        Map<String, FilePathChecksumTriple> filenameToHashMap = FilenameToHashMapCreator
-                .getFilenameToHashMap(channelCreator);
+        final Map<String, FileLocationMd5Pair> filenameToHashMap = FileLocationToMd5HashMapCreator
+                .getFileLocationToMd5HashMap(channelCreator);
         channelCreator.closeSession();
 
-        File filenameToHashMapFile = new File(backupDir,
+        final File filenameToHashMapFile = new File(backupDir,
                 ExsiterConstants.FILENAME_TO_HASH_MAP);
         MapStore.storeMap(filenameToHashMapFile, filenameToHashMap);
     }
 
-    private void performInitialBulkFileDownload(Properties configProps,
-            File backupDir) {
-        String notImplemented = "Initial bulk download from target host to local backup dir is not implemented. Do scp -R via command line!";
+    protected void performInitialFileDownload(final Properties configProps,
+            final File backupDir) {
+        final String notImplemented = "Initial file download from target host to local backup dir is not implemented. Do scp -R via command line!";
         LOGGER.error(notImplemented);
     }
 
-    private void addAndCommitChanges(File backupDir) throws IOException {
-        Repository repo = GitShell.getGitRepository(backupDir);
+    protected void addAndCommitChanges(final File backupDir) throws IOException {
+        final Repository repo = GitShell.getGitRepository(backupDir);
         GitShell.addAllChanges(repo);
-        String commitMessage = "Initial download of fileNameToHashMap and content.";
+        final String commitMessage = "Initial download of fileNameToHashMap and content.";
         GitShell.commitAllChanges(repo, commitMessage);
     }
 
+    /**
+     * Creates backup root dir containing backup dir with remote content dir.
+     * Returns backup dir where backups will be made (subdir of backup root
+     * dir).
+     * 
+     * @param configProps
+     * @return backup dir
+     * @throws IOException
+     */
     protected File createBackupDirButThrowExceptionIfItAlreadyExists(
-            Properties configProps) throws IOException {
-        String backupRootDirLocation = configProps
+            final Properties configProps) throws IOException {
+        final String backupRootDirLocation = configProps
                 .getProperty(ApplicationConfiguration.PROP_BACKUP_ROOT_DIR);
-        File backupRootDir = new File(backupRootDirLocation);
-        File backupDir = new File(backupRootDir,
+        final File backupRootDir = new File(backupRootDirLocation);
+        // create exsiter-backup dir under root dir
+        final File backupDir = new File(backupRootDir,
                 ExsiterConstants.EXSITER_BACKUP_DIR);
         if (backupDir.exists()) {
-            String errMsg = backupDir.getAbsolutePath()
+            final String errMsg = backupDir.getAbsolutePath()
                     + " already exists. Unable to initialize new application - aborting...";
             LOGGER.fatal(errMsg);
             throw new IOException(errMsg);
         }
-        backupDir.mkdirs();
+        final boolean backupDirCreated = backupDir.mkdirs();
+        checkIfDirCreationWasSuccessful(backupDirCreated, backupDir);
 
-        File remoteContentDir = new File(backupDir,
+        // remote-content-dir inside of exsiter-backup dir
+        // location of remote content, i.e. not metadata map
+        final File remoteContentDir = new File(backupDir,
                 ExsiterConstants.REMOTE_CONTENT_DIR);
-        remoteContentDir.mkdir();
+        final boolean remotedContentDirCreated = remoteContentDir.mkdir();
+        checkIfDirCreationWasSuccessful(remotedContentDirCreated,
+                remoteContentDir);
 
         return backupDir;
+    }
+
+    protected void checkIfDirCreationWasSuccessful(
+            final boolean creationSuccess, final File dir) throws IOException {
+        if (!creationSuccess) {
+            throw new IOException("Unable to create " + dir.getAbsolutePath());
+        }
     }
 }

@@ -18,14 +18,15 @@ import au.com.bytecode.opencsv.CSVWriter;
 /**
  * Utility class stores and loads map containing filePathAndName
  * key/FilePathChecksumTriple values.
+ * 
  */
 public class MapStore {
 
     public static final int FILE_AND_PATH_NAME_INDEX = 0;
     public static final int MD5_HASH_INDEX = 1;
 
-    public static void storeMap(File mapFile,
-            Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap)
+    public static void storeMap(final File mapFile,
+            final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap)
             throws IOException {
         FileWriter writer = null;
         try {
@@ -36,16 +37,16 @@ public class MapStore {
         }
     }
 
-    public static void storeMap(Writer writer,
-            Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap) {
+    public static void storeMap(final Writer writer,
+            final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap) {
         CSVWriter csvWriter = null;
         try {
             // generate default , separator with " quote char, \n line separator
             csvWriter = new CSVWriter(writer);
-            for (Map.Entry<String, FilePathChecksumTriple> entry : filePathAndNameToTripleMap
+            for (final Map.Entry<String, FileLocationMd5Pair> entry : filePathAndNameToTripleMap
                     .entrySet()) {
-                String filePathAndName = entry.getKey();
-                FilePathChecksumTriple triple = entry.getValue();
+                final String filePathAndName = entry.getKey();
+                final FileLocationMd5Pair triple = entry.getValue();
                 csvWriter.writeNext(new String[] { filePathAndName,
                         triple.getMd5Hash() });
             }
@@ -54,9 +55,17 @@ public class MapStore {
         }
     }
 
-    public static Map<String, FilePathChecksumTriple> loadMap(File csvMapFile)
-            throws IOException {
-        Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap = null;
+    /**
+     * Load map containing filename and path as key and a triple of File name,
+     * path and Checksum as value.
+     * 
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    public static Map<String, FileLocationMd5Pair> loadMap(
+            final File csvMapFile) throws IOException {
+        Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = null;
         Reader reader = null;
         try {
             reader = new FileReader(csvMapFile);
@@ -67,17 +76,25 @@ public class MapStore {
         return filePathAndNameToTripleMap;
     }
 
-    public static Map<String, FilePathChecksumTriple> loadMap(Reader reader)
-            throws IOException {
-        Map<String, FilePathChecksumTriple> filePathAndNameToTripleMap = new HashMap<String, FilePathChecksumTriple>();
+    /**
+     * Load map containing filename and path as key and a triple of File name,
+     * path and Checksum as value.
+     * 
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    public static Map<String, FileLocationMd5Pair> loadMap(
+            final Reader reader) throws IOException {
+        final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = new HashMap<String, FileLocationMd5Pair>();
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(reader);
-            List<String[]> allEntries = csvReader.readAll();
-            for (String[] entry : allEntries) {
-                String filePathAndName = entry[FILE_AND_PATH_NAME_INDEX];
-                String md5Hash = entry[MD5_HASH_INDEX];
-                FilePathChecksumTriple triple = new FilePathChecksumTriple(
+            final List<String[]> allEntries = csvReader.readAll();
+            for (final String[] entry : allEntries) {
+                final String filePathAndName = entry[FILE_AND_PATH_NAME_INDEX];
+                final String md5Hash = entry[MD5_HASH_INDEX];
+                final FileLocationMd5Pair triple = new FileLocationMd5Pair(
                         md5Hash, filePathAndName);
                 filePathAndNameToTripleMap.put(filePathAndName, triple);
             }
