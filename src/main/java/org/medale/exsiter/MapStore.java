@@ -18,7 +18,6 @@ import au.com.bytecode.opencsv.CSVWriter;
 /**
  * Utility class stores and loads map containing filePathAndName
  * key/FilePathChecksumTriple values.
- * 
  */
 public class MapStore {
 
@@ -56,15 +55,15 @@ public class MapStore {
     }
 
     /**
-     * Load map containing filename and path as key and a triple of File name,
-     * path and Checksum as value.
+     * Load map containing fileLocation as key and a pair of fileLocation key to
+     * file location and its MD5 Hash as value.
      * 
      * @param reader
      * @return
      * @throws IOException
      */
-    public static Map<String, FileLocationMd5Pair> loadMap(
-            final File csvMapFile) throws IOException {
+    public static Map<String, FileLocationMd5Pair> loadMap(final File csvMapFile)
+            throws IOException {
         Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = null;
         Reader reader = null;
         try {
@@ -77,15 +76,15 @@ public class MapStore {
     }
 
     /**
-     * Load map containing filename and path as key and a triple of File name,
-     * path and Checksum as value.
+     * Load map containing fileLocation as key and a pair of fileLocation key to
+     * file location and its MD5 Hash as value.
      * 
      * @param reader
      * @return
      * @throws IOException
      */
-    public static Map<String, FileLocationMd5Pair> loadMap(
-            final Reader reader) throws IOException {
+    public static Map<String, FileLocationMd5Pair> loadMap(final Reader reader)
+            throws IOException {
         final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = new HashMap<String, FileLocationMd5Pair>();
         CSVReader csvReader = null;
         try {

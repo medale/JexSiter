@@ -56,7 +56,7 @@ public class MapStoreTest {
     @Test
     public void testCsvApi() throws IOException {
         final File csvFile = getTestCsvFile();
-        final List<FileLocationMd5Pair> expectedPairs = getExpectedTriples();
+        final List<FileLocationMd5Pair> expectedPairs = getFileLocationMd5Hashes();
         CSVWriter writer = null;
         try {
             // generate default , separator with " quote char
@@ -88,20 +88,20 @@ public class MapStoreTest {
         }
     }
 
-    private List<FileLocationMd5Pair> getExpectedTriples() {
-        final List<FileLocationMd5Pair> expectedTriples = new ArrayList<FileLocationMd5Pair>();
+    private List<FileLocationMd5Pair> getFileLocationMd5Hashes() {
+        final List<FileLocationMd5Pair> expectedFileLocations = new ArrayList<FileLocationMd5Pair>();
         for (final String input : this.inputList) {
             final FileLocationMd5Pair pair = FileLocationMd5Pair
                     .getInstance(input);
-            expectedTriples.add(pair);
+            expectedFileLocations.add(pair);
         }
-        return expectedTriples;
+        return expectedFileLocations;
     }
 
     private Map<String, FileLocationMd5Pair> getFileLocationToMd5HashMap() {
-        final List<FileLocationMd5Pair> expectedTriples = getExpectedTriples();
+        final List<FileLocationMd5Pair> expectedFileLocations = getFileLocationMd5Hashes();
         final Map<String, FileLocationMd5Pair> fileLocationToMd5HashMap = new HashMap<String, FileLocationMd5Pair>();
-        for (final FileLocationMd5Pair pair : expectedTriples) {
+        for (final FileLocationMd5Pair pair : expectedFileLocations) {
             final String key = pair.getFileLocation();
             fileLocationToMd5HashMap.put(key, pair);
         }

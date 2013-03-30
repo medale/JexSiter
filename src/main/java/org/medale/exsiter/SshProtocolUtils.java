@@ -11,11 +11,14 @@ import org.apache.commons.io.IOUtils;
 /**
  * Constants/protocol/comments usually verbatim from Jan Pechanec's excellent
  * post on scp protocol at
- * https://blogs.oracle.com/janp/entry/how_the_scp_protocol_works
+ * https://blogs.oracle.com/janp/entry/how_the_scp_protocol_works.
  */
-public class SshProtocolUtils {
+public final class SshProtocolUtils {
 
     private static final int DEFAULT_BUFFER_SIZE = 4096;
+
+    private SshProtocolUtils() {
+    }
 
     /**
      * 
