@@ -16,8 +16,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 /**
- * Utility class stores and loads map containing filePathAndName
- * key/FilePathChecksumTriple values.
+ * Utility class stores and loads map containing filePathAndName key/md5sum
+ * values.
  */
 public class MapStore {
 
@@ -25,29 +25,28 @@ public class MapStore {
     public static final int MD5_HASH_INDEX = 1;
 
     public static void storeMap(final File mapFile,
-            final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap)
+            final Map<String, String> filePathAndNameToMd5Map)
             throws IOException {
         FileWriter writer = null;
         try {
             writer = new FileWriter(mapFile);
-            storeMap(writer, filePathAndNameToTripleMap);
+            storeMap(writer, filePathAndNameToMd5Map);
         } finally {
             IOUtils.closeQuietly(writer);
         }
     }
 
     public static void storeMap(final Writer writer,
-            final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap) {
+            final Map<String, String> filePathAndNameToMd5Map) {
         CSVWriter csvWriter = null;
         try {
             // generate default , separator with " quote char, \n line separator
             csvWriter = new CSVWriter(writer);
-            for (final Map.Entry<String, FileLocationMd5Pair> entry : filePathAndNameToTripleMap
+            for (final Map.Entry<String, String> entry : filePathAndNameToMd5Map
                     .entrySet()) {
                 final String filePathAndName = entry.getKey();
-                final FileLocationMd5Pair triple = entry.getValue();
-                csvWriter.writeNext(new String[] { filePathAndName,
-                        triple.getMd5Hash() });
+                final String md5Hash = entry.getValue();
+                csvWriter.writeNext(new String[] { filePathAndName, md5Hash });
             }
         } finally {
             IOUtils.closeQuietly(csvWriter);
@@ -55,37 +54,35 @@ public class MapStore {
     }
 
     /**
-     * Load map containing fileLocation as key and a pair of fileLocation key to
-     * file location and its MD5 Hash as value.
+     * Load map containing fileLocation as key and the file's MD5 Hash as value.
      * 
      * @param reader
      * @return
      * @throws IOException
      */
-    public static Map<String, FileLocationMd5Pair> loadMap(final File csvMapFile)
+    public static Map<String, String> loadMap(final File csvMapFile)
             throws IOException {
-        Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = null;
+        Map<String, String> filePathAndNameToMd5Map = null;
         Reader reader = null;
         try {
             reader = new FileReader(csvMapFile);
-            filePathAndNameToTripleMap = loadMap(reader);
+            filePathAndNameToMd5Map = loadMap(reader);
         } finally {
             IOUtils.closeQuietly(reader);
         }
-        return filePathAndNameToTripleMap;
+        return filePathAndNameToMd5Map;
     }
 
     /**
-     * Load map containing fileLocation as key and a pair of fileLocation key to
-     * file location and its MD5 Hash as value.
+     * Load map containing fileLocation as key and the file's MD5 Hash as value.
      * 
      * @param reader
      * @return
      * @throws IOException
      */
-    public static Map<String, FileLocationMd5Pair> loadMap(final Reader reader)
+    public static Map<String, String> loadMap(final Reader reader)
             throws IOException {
-        final Map<String, FileLocationMd5Pair> filePathAndNameToTripleMap = new HashMap<String, FileLocationMd5Pair>();
+        final Map<String, String> filePathAndNameToMd5Map = new HashMap<String, String>();
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(reader);
@@ -93,14 +90,12 @@ public class MapStore {
             for (final String[] entry : allEntries) {
                 final String filePathAndName = entry[FILE_AND_PATH_NAME_INDEX];
                 final String md5Hash = entry[MD5_HASH_INDEX];
-                final FileLocationMd5Pair triple = new FileLocationMd5Pair(
-                        md5Hash, filePathAndName);
-                filePathAndNameToTripleMap.put(filePathAndName, triple);
+                filePathAndNameToMd5Map.put(filePathAndName, md5Hash);
             }
         } finally {
             IOUtils.closeQuietly(csvReader);
         }
-        return filePathAndNameToTripleMap;
+        return filePathAndNameToMd5Map;
     }
 
 }

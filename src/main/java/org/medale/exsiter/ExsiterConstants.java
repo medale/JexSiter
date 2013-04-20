@@ -24,4 +24,9 @@ public class ExsiterConstants {
      */
     public static final String DEFAULT_ENCODING = "UTF-8";
 
+    /**
+     * Command used to list remote/local files and their checksums
+     */
+    public static final String LIST_ALL_FILES_AND_THEIR_CHECKSUMS = "find . -type f | xargs md5sum";
+
 }

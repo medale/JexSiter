@@ -30,11 +30,10 @@ public class MapStoreTest {
     @Test
     public void testStoreMapAndLoadMapWithFile() throws IOException {
         final File csvFile = getTestCsvFile();
-        final Map<String, FileLocationMd5Pair> fileLocationToMd5HashMap = getFileLocationToMd5HashMap();
+        final Map<String, String> fileLocationToMd5HashMap = getFileLocationToMd5HashMap();
         MapStore.storeMap(csvFile, fileLocationToMd5HashMap);
 
-        final Map<String, FileLocationMd5Pair> actualMap = MapStore
-                .loadMap(csvFile);
+        final Map<String, String> actualMap = MapStore.loadMap(csvFile);
         assertEquals(fileLocationToMd5HashMap, actualMap);
     }
 
@@ -43,20 +42,19 @@ public class MapStoreTest {
         Writer writer = null;
         final File csvFile = getTestCsvFile();
         writer = new FileWriter(csvFile);
-        final Map<String, FileLocationMd5Pair> fileLocationToMd5HashMap = getFileLocationToMd5HashMap();
+        final Map<String, String> fileLocationToMd5HashMap = getFileLocationToMd5HashMap();
         MapStore.storeMap(writer, fileLocationToMd5HashMap);
 
         Reader reader = null;
         reader = new FileReader(csvFile);
-        final Map<String, FileLocationMd5Pair> actualMap = MapStore
-                .loadMap(reader);
+        final Map<String, String> actualMap = MapStore.loadMap(reader);
         assertEquals(fileLocationToMd5HashMap, actualMap);
     }
 
     @Test
     public void testCsvApi() throws IOException {
         final File csvFile = getTestCsvFile();
-        final List<FileLocationMd5Pair> expectedPairs = getFileLocationMd5Hashes();
+        final List<FileLocationMd5Pair> expectedPairs = getFileLocationAndMd5HashPairs();
         CSVWriter writer = null;
         try {
             // generate default , separator with " quote char
@@ -88,7 +86,7 @@ public class MapStoreTest {
         }
     }
 
-    private List<FileLocationMd5Pair> getFileLocationMd5Hashes() {
+    private List<FileLocationMd5Pair> getFileLocationAndMd5HashPairs() {
         final List<FileLocationMd5Pair> expectedFileLocations = new ArrayList<FileLocationMd5Pair>();
         for (final String input : this.inputList) {
             final FileLocationMd5Pair pair = FileLocationMd5Pair
@@ -98,12 +96,13 @@ public class MapStoreTest {
         return expectedFileLocations;
     }
 
-    private Map<String, FileLocationMd5Pair> getFileLocationToMd5HashMap() {
-        final List<FileLocationMd5Pair> expectedFileLocations = getFileLocationMd5Hashes();
-        final Map<String, FileLocationMd5Pair> fileLocationToMd5HashMap = new HashMap<String, FileLocationMd5Pair>();
-        for (final FileLocationMd5Pair pair : expectedFileLocations) {
+    private Map<String, String> getFileLocationToMd5HashMap() {
+        final List<FileLocationMd5Pair> expectedPairs = getFileLocationAndMd5HashPairs();
+        final Map<String, String> fileLocationToMd5HashMap = new HashMap<String, String>();
+        for (final FileLocationMd5Pair pair : expectedPairs) {
             final String key = pair.getFileLocation();
-            fileLocationToMd5HashMap.put(key, pair);
+            final String md5Hash = pair.getMd5Hash();
+            fileLocationToMd5HashMap.put(key, md5Hash);
         }
         return fileLocationToMd5HashMap;
     }

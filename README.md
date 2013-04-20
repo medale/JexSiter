@@ -25,28 +25,37 @@ JexSiter
  * knownHostsLocation - must contain target machine (log in to target via ssh, could point to $USER_HOME/.ssh/known_hosts)
  * username - username for target machine
  * hostname - full host name of target machine
- * gitTagsToRetain - number of tag directories to retain (default 2)
- * gitDir - location of local git repository root 
-  * git dirs are subdirectories of this dir
-  * exsiter-backup subdirectory contains last backup
-  * exister-yyyyMMMdd - tag that represents latest git version for that date
+ * backupRootDir - absolute path to the root of the backup directory
+  * contains exsiter-backup dir which is the git repo maintaining 
 
 ## Concept of Operations
 
 * Run Exsiter Main class as cron job (TODO: run via Quartz?)
 * Load default configuration from $USER_HOME/.exsiter/application.conf
-* Runs SshShellCommandExecutor.LIST_ALL_FILES_AND_THEIR_CHECKSUMS (find . -type f | xargs md5sum)
+
+### Startup
+
+* TODO: Ideal to manually download initial bulk files via scp -r $user@remote-machine:~/remote-dir . 
+
+#### Hash local repository and remote backup sites
+* Create local md5/file pair hashes in $backupRootDir/exsiter-backup/localFileNameToHashMap.csv
+* Get remote md5/file pair hashes SshShellCommandExecutor.LIST_ALL_FILES_AND_THEIR_CHECKSUMS 
+ * Executes find . -type f | xargs md5sum
  * Returns listing of all files as pairs: 56a329926a92460b9b6ac1377f610e48 ./web/newsletter/grip-it.jpg
- * Parse into FilePathChecksumTriple and create Map<String, FilePathChecksumTriple> fileWithPath to triple
-* Looks for $gitDir/exsiter-backup/fileNameToHashMap.csv to load previous map
-* Iterates through all entries in the new map
- * If filename/md5 hash are unchanged against previous map, do nothing
- * If filename did not exist in previous version or had a different md5 hash (file was updated)
-  * Download new/updated file via ScpTool
-  * Add downloaded file under $gitDir/exsiter-backup/target-web-dir/ with correct file path and name
-* Iterates through diff of keys (file names) that were in the previous map but not the new (deleted files on target)
- * Delete corresponding file under target-web-dir/
-* Write new map to $gitDir/exsiter-backup/fileNameToHashMap.csv
+ * Parse into FileLocationMd5Pair and create Map<String, FileLocationMd5Pair> fileWithPath to pair
+ * Store in $backupRootDir/exsiter-backup/remoteFileNameToHashMap.csv file
+
+#### Compare local and remote hashes
+* Do comparison of localFileNameToHashMap.csv and remoteFileNameToHashMap.csv
+ * Iterates through all entries in the remote map
+  * If filename/md5 hash are unchanged against local map, do nothing
+  * If filename did not exist in local version or had a different md5 hash (file was updated)
+   * Download new/updated file via ScpTool
+   * Add downloaded file under $backupRootDir/exsiter-backup/remote-content-dir with correct file path and name
+  * Iterates through diff of keys (file names) that were in the local map but not the remote (deleted files on target)
+   * Delete corresponding file under remote-content-dir
+
+#### Perform git add/commit/tag
 * Execute logical "git add $gitDir/exsiter-backup/" to add all the new/deleted files
 * Execute git commit
 * Execute git tag yyyyMMMdd to make rollback easy

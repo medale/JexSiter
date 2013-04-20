@@ -54,8 +54,7 @@ public class InitializeCommandTest {
         appConfig.loadConfiguration();
         final Properties configProps = appConfig.getConfiguration();
         final InitializeCommand initCmd = new InitializeCommand();
-        final File backupDir = initCmd
-                .createBackupDirButThrowExceptionIfItAlreadyExists(configProps);
+        initCmd.createBackupDirButThrowExceptionIfItAlreadyExists(configProps);
         initCmd.createBackupDirButThrowExceptionIfItAlreadyExists(configProps);
     }
 
@@ -88,14 +87,13 @@ public class InitializeCommandTest {
         final File filenameToHashMapFile = new File(backupDir,
                 ExsiterConstants.FILENAME_TO_HASH_MAP);
         assertTrue(filenameToHashMapFile.exists());
-        final Map<String, FileLocationMd5Pair> map = MapStore
-                .loadMap(filenameToHashMapFile);
+        final Map<String, String> map = MapStore.loadMap(filenameToHashMapFile);
         assertEquals(SshShellCommandExecutorTest.TOTAL_TEST_FILES, map.size());
     }
 
     @Test
     public void testPerformInitialFileDownload() {
-
+        // TODO
     }
 
 }

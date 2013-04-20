@@ -56,8 +56,8 @@ public class InitializeCommand {
             final File backupDir) throws JSchException, IOException {
         final SshChannelCreator channelCreator = SshChannelCreatorFactory
                 .getSshChannelCreator(configProps);
-        final Map<String, FileLocationMd5Pair> filenameToHashMap = FileLocationToMd5HashMapCreator
-                .getFileLocationToMd5HashMap(channelCreator);
+        final Map<String, String> filenameToHashMap = RemoteFileLocationToMd5MapGenerator
+                .getFileLocationToMd5Map(channelCreator);
         channelCreator.closeSession();
 
         final File filenameToHashMapFile = new File(backupDir,

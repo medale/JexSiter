@@ -23,8 +23,6 @@ public class SshShellCommandExecutor {
 
     private static final Logger LOGGER = Logger.getLogger(SshShellCommandExecutor.class);
 
-    public static final String LIST_ALL_FILES_AND_THEIR_CHECKSUMS = "find . -type f | xargs md5sum";
-
     private SshChannelCreator channelCreator;
 
     public void setSshChannelCreator(SshChannelCreator channelCreator) {
