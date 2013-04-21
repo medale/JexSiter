@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -48,7 +47,6 @@ public final class ApplicationConfiguration {
 
     public ApplicationConfiguration(final String configurationLocation) {
         this.configurationLocation = configurationLocation;
-        new Random();
     }
 
     /**
@@ -62,8 +60,22 @@ public final class ApplicationConfiguration {
         verfiyRequiredProperties(this.configurationProperties);
     }
 
+    public String getConfigurationLocation() {
+        return this.configurationLocation;
+    }
+
     public Properties getConfiguration() {
         return this.configurationProperties;
+    }
+
+    public static File getExsiterBackupDirectory(final Properties configProps) {
+        final String backupRootDirLocation = configProps
+                .getProperty(ApplicationConfiguration.PROP_BACKUP_ROOT_DIR);
+        final File backupRootDir = new File(backupRootDirLocation);
+
+        final File backupDir = new File(backupRootDir,
+                ExsiterConstants.EXSITER_BACKUP_DIR);
+        return backupDir;
     }
 
     protected Properties getConfigurationFromFile(

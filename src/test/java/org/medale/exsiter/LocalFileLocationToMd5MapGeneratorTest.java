@@ -54,6 +54,18 @@ public class LocalFileLocationToMd5MapGeneratorTest {
     }
 
     @Test
+    public void testGetFileLocationRelativeToStartDirectoryLocationWithNonstandardStart() {
+        final String startDirectoryLocationWithNoEndingForwardSlash = "/home/test";
+        final String absoluteFileLocation = "/home/test/web/newsletter/grip-it.jpg";
+        final String expectedOutput = "./web/newsletter/grip-it.jpg";
+        final String actualOutput = LocalFileLocationToMd5MapGenerator
+                .getFileLocationRelativeToStartDirectoryLocation(
+                        startDirectoryLocationWithNoEndingForwardSlash,
+                        absoluteFileLocation);
+        assertEquals(expectedOutput, actualOutput);
+    }
+
+    @Test
     public void testGetMd5Hash() throws Exception {
         final String[] fileNames = { "/home/test/web/newsletterArt/grip.jpg",
                 "/home/test/web/newsletterArt/EAGLE.jpg" };

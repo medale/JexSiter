@@ -1,42 +1,39 @@
 package org.medale.exsiter;
 
-import static org.junit.Assert.assertTrue;
-
+import java.io.File;
 import java.io.IOException;
-import java.util.Set;
+import java.util.Properties;
 
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
-import org.medale.exsiter.Main.Functionality;
 
 import com.jcraft.jsch.JSchException;
 
 public class MainTest {
 
-    @Test
-    public void testGetFunctionalityToExecuteFromCommandLineInit() {
-        String[][] args = { { "-init" }, { "-i" } };
-        for (String[] currArgs : args) {
-            Set<Functionality> functionality = Main
-                    .getFunctionalityToExecuteFromCommandLine(currArgs);
-            assertTrue(functionality.size() == 1);
-            assertTrue(functionality.contains(Functionality.INIT));
+    @Before
+    public void setUp() throws IOException {
+        final ApplicationConfiguration appConfig = new ApplicationConfiguration(
+                ApplicationConfigurationTest.TEST_CONFIG_LOCATION);
+        appConfig.loadConfiguration();
+        final Properties configuration = appConfig.getConfiguration();
+        final String backupRoot = configuration
+                .getProperty(ApplicationConfiguration.PROP_BACKUP_ROOT_DIR);
+        final File backupRootDir = new File(backupRoot);
+        if (backupRootDir.exists()) {
+            FileUtils.deleteDirectory(backupRootDir);
         }
     }
 
     @Test
-    public void testGetFunctionalityToExecuteFromCommandLineExplicitBackup() {
-        String[][] args = { { "-backup" }, { "-b" } };
-        for (String[] currArgs : args) {
-            Set<Functionality> functionality = Main
-                    .getFunctionalityToExecuteFromCommandLine(currArgs);
-            assertTrue(functionality.size() == 1);
-            assertTrue(functionality.contains(Functionality.BACKUP));
-        }
-    }
+    public void testMainInit() throws IOException, ParseException,
+            JSchException {
 
-    public void runInit() throws IOException, JSchException {
-        String[] args = { "-init", "-test" };
+        final String[] args = { "-" + Main.CONFIG_LOCATION,
+                ApplicationConfigurationTest.TEST_CONFIG_LOCATION,
+                "-" + Main.INITIALIZE };
         Main.main(args);
     }
-
 }

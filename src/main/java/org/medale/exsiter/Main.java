@@ -1,8 +1,6 @@
 package org.medale.exsiter;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -14,10 +12,15 @@ import com.jcraft.jsch.JSchException;
 
 /**
  * Entry into exister functionality:<br>
- * java -jar jexsiter.jar org.medale.exsiter.Main -init<br>
- * java -jar jexsiter.jar org.medale.exsiter.Main -backup (this is default)<br>
+ * Unless-init option is specified we will attempt to run backup. Args in
+ * parenthesis are optional.
  * 
- * Running either option with -test will execute functionality in test mode<br>
+ * <ol>
+ * <li>Initialize: java -jar jexsiter.jar org.medale.exsiter.Main -init
+ * (-configLocation)
+ * <li>Backup: java -jar jexsiter.jar org.medale.exsiter.Main (-configLocation)
+ * $absoluteConfigLocation</li>
+ * </ol>
  * 
  * Background on GnuParser:
  * http://www.mail-archive.com/commons-user@jakarta.apache.org/msg06288.html The
@@ -28,100 +31,47 @@ import com.jcraft.jsch.JSchException;
  */
 public class Main {
 
-    public enum Functionality {
-        INIT {
-            @Override
-            public String option() {
-                return "init";
-            }
-        },
-        BACKUP {
-            @Override
-            public String option() {
-                return "backup";
-            }
-        },
-        TEST {
-            @Override
-            public String option() {
-                return "test";
-            }
-        };
+    public static final String CONFIG_LOCATION = "configLocation";
+    public static final String INITIALIZE = "init";
 
-        public abstract String option();
-    };
-
-    /**
-     * @param args
-     * @throws IOException
-     * @throws JSchException
-     * @throws org.apache.commons.cli.ParseException
-     */
-    public static void main(String[] args) throws IOException, JSchException {
-        Set<Functionality> functionalityToExecute = getFunctionalityToExecuteFromCommandLine(args);
-        if (functionalityToExecute.contains(Functionality.TEST)) {
-            functionalityToExecute.remove(Functionality.TEST);
+    public static void main(final String[] args) throws IOException,
+            ParseException, JSchException {
+        final Options options = getOptions();
+        final CommandLineParser parser = new GnuParser();
+        final CommandLine line = parser.parse(options, args);
+        final String configLocation = line.getOptionValue(CONFIG_LOCATION);
+        final ApplicationConfiguration appConfig = getApplicationConfiguration(configLocation);
+        if (line.hasOption(INITIALIZE)) {
+            final InitializeCommand initCmd = new InitializeCommand();
+            initCmd.execute(appConfig);
         } else {
 
         }
-
-    }
-
-    protected static void execute(Functionality functionality, boolean testMode)
-            throws IOException, JSchException {
-        switch (functionality) {
-        case INIT:
-            InitializeCommand initCommand = new InitializeCommand();
-            initCommand.execute();
-            break;
-        case BACKUP:
-            BackupCommand backupCommand = new BackupCommand();
-            backupCommand.execute();
-            break;
-        default:
-            throw new IllegalArgumentException("Unhandled functionality "
-                    + functionality);
-        }
-    }
-
-    protected static Set<Functionality> getFunctionalityToExecuteFromCommandLine(
-            String[] args) {
-        Options options = getOptions();
-        CommandLineParser parser = new GnuParser();
-        Set<Functionality> functionalityToExecute = new HashSet<Functionality>();
-        try {
-            CommandLine line = parser.parse(options, args);
-            if (line.hasOption(Functionality.INIT.option())) {
-                System.out.println("Initializing file/md5 hash map...");
-                functionalityToExecute.add(Functionality.INIT);
-            } else if (line.hasOption(Functionality.BACKUP.option())) {
-                System.out.println("Initiating backup...");
-                functionalityToExecute.add(Functionality.BACKUP);
-            } else if (line.hasOption(Functionality.TEST.option())) {
-                System.out.println("Executing in test mode...");
-                functionalityToExecute.add(Functionality.TEST);
-            }
-        } catch (ParseException exp) {
-            System.err.println("Unable to parse command line args due to "
-                    + exp.getMessage());
-        }
-        return functionalityToExecute;
     }
 
     protected static Options getOptions() {
-        Options options = new Options();
-        boolean hasArgs = false;
+        final Options options = new Options();
+        boolean hasArgs = true;
         options.addOption(
-                "i",
-                Functionality.INIT.option(),
+                "c",
+                CONFIG_LOCATION,
                 hasArgs,
-                "Initializes file name to hash map at $gitDir/exsiter-current/fileNameToHashMap.csv ");
-        options.addOption(
-                "b",
-                Functionality.BACKUP.option(),
-                hasArgs,
-                "Performs incremental backup using file name to hash map at $gitDir/exsiter-current/fileNameToHashMap.csv");
+                "If set, overrides default config location of $USER_HOME/.exsiter/application.conf.");
+        hasArgs = false;
+        options.addOption("i", INITIALIZE, hasArgs,
+                "Initializes local Exsiter file store and Git repository.");
         return options;
+    }
+
+    protected static ApplicationConfiguration getApplicationConfiguration(
+            final String configLocation) {
+        ApplicationConfiguration appConfig = null;
+        if (configLocation == null) {
+            appConfig = new ApplicationConfiguration();
+        } else {
+            appConfig = new ApplicationConfiguration(configLocation);
+        }
+        return appConfig;
     }
 
 }

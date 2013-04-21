@@ -21,14 +21,14 @@ public class RepositoryAdjustorTest {
 
     @Test
     public void testComputeFileLocationsToBeLocallyDeletedWithFilesToBeDeleted() {
-        final Map<String, FileLocationMd5Pair> previousMap = getMap(INPUT_LIST1);
-        final Set<String> previousFileLocations = previousMap.keySet();
-        final List<String> currentList = INPUT_LIST1.subList(0, 1);
-        final Map<String, FileLocationMd5Pair> currentMap = getMap(currentList);
-        final Set<String> currentFileLocations = currentMap.keySet();
+        final Map<String, String> remoteMap = getMap(INPUT_LIST1);
+        final Set<String> remoteFileLocations = remoteMap.keySet();
+        final List<String> localList = INPUT_LIST1.subList(0, 1);
+        final Map<String, String> localMap = getMap(localList);
+        final Set<String> localFileLocations = localMap.keySet();
         final Set<String> locallyDeleted = RepositoryAdjustor
-                .computeFileLocationsToBeLocallyDeleted(currentFileLocations,
-                        previousFileLocations);
+                .computeFileLocationsToBeLocallyDeleted(localFileLocations,
+                        remoteFileLocations);
         final List<String> expectedLocallyDeleted = Arrays.asList(
                 "./web/newsletter/handstand.jpg", "./web/bogus/bar.baz");
         assertEquals(locallyDeleted.size(), expectedLocallyDeleted.size());
@@ -39,26 +39,26 @@ public class RepositoryAdjustorTest {
 
     @Test
     public void testComputeFileLocationsToBeLocallyDeletedWithNoFilesToBeDeleted() {
-        final Map<String, FileLocationMd5Pair> previousMap = getMap(INPUT_LIST1);
-        final Set<String> previousFileLocations = previousMap.keySet();
-        final Map<String, FileLocationMd5Pair> currentMap = previousMap;
-        final Set<String> currentFileLocations = currentMap.keySet();
+        final Map<String, String> remoteMap = getMap(INPUT_LIST1);
+        final Set<String> remoteFileLocations = remoteMap.keySet();
+        final Map<String, String> localMap = remoteMap;
+        final Set<String> localFileLocations = localMap.keySet();
         final Set<String> locallyDeleted = RepositoryAdjustor
-                .computeFileLocationsToBeLocallyDeleted(currentFileLocations,
-                        previousFileLocations);
+                .computeFileLocationsToBeLocallyDeleted(localFileLocations,
+                        remoteFileLocations);
         assertEquals(0, locallyDeleted.size());
     }
 
     @Test
     public void testComputeFileLocationsToBeAddedWithFilesToBeAdded() {
-        final Map<String, FileLocationMd5Pair> currentMap = getMap(INPUT_LIST1);
-        final Set<String> currentFileLocations = currentMap.keySet();
-        final List<String> previousList = INPUT_LIST1.subList(0, 1);
-        final Map<String, FileLocationMd5Pair> previousMap = getMap(previousList);
-        final Set<String> previousFileLocations = previousMap.keySet();
+        final Map<String, String> localMap = getMap(INPUT_LIST1);
+        final Set<String> localFileLocations = localMap.keySet();
+        final List<String> remoteList = INPUT_LIST1.subList(0, 1);
+        final Map<String, String> remoteMap = getMap(remoteList);
+        final Set<String> remoteFileLocations = remoteMap.keySet();
         final Set<String> added = RepositoryAdjustor
-                .computeFileLocationsToBeAdded(currentFileLocations,
-                        previousFileLocations);
+                .computeFileLocationsToBeAdded(localFileLocations,
+                        remoteFileLocations);
         final List<String> expectedAdded = Arrays.asList(
                 "./web/newsletter/handstand.jpg", "./web/bogus/bar.baz");
         assertEquals(expectedAdded.size(), added.size());
@@ -69,14 +69,13 @@ public class RepositoryAdjustorTest {
 
     @Test
     public void testComputeFileLocationsToBeModified() {
-        final Map<String, FileLocationMd5Pair> currentMap = getMap(INPUT_LIST1);
-        final Map<String, FileLocationMd5Pair> previousMap = getMap(INPUT_LIST1);
+        final Map<String, String> localMap = getMap(INPUT_LIST1);
+        final Map<String, String> remoteMap = getMap(INPUT_LIST1);
         final String modLoc = "./web/newsletter/handstand.jpg";
-        final FileLocationMd5Pair modPair = currentMap.get(modLoc);
-        final String newMd5Hash = "123ccea2e6e506ee68b1a793c477e613";
-        modPair.setMd5Hash(newMd5Hash);
+        final String modMd5Hash = "123ccea2e6e506ee68b1a793c477e613";
+        remoteMap.put(modLoc, modMd5Hash);
         final Set<String> modified = RepositoryAdjustor
-                .computeFileLocationsToBeModified(currentMap, previousMap);
+                .computeFileLocationsToBeModified(localMap, remoteMap);
         final List<String> expectedMod = Arrays.asList(modLoc);
         assertEquals(expectedMod.size(), modified.size());
         for (final String expected : expectedMod) {
@@ -84,12 +83,53 @@ public class RepositoryAdjustorTest {
         }
     }
 
-    private Map<String, FileLocationMd5Pair> getMap(final List<String> inputList) {
+    @Test
+    public void testComputeFileAdjustments() {
+        final Map<String, String> localMap = getMap(INPUT_LIST1);
+        final Map<String, String> remoteMap = getMap(INPUT_LIST1);
+
+        // remote entry modified
+        final String modLoc = "./web/newsletter/handstand.jpg";
+        final String modMd5Hash = "123ccea2e6e506ee68b1a793c477e613";
+        remoteMap.put(modLoc, modMd5Hash);
+
+        // remote entry added
+        final String addedLoc = "./newFile.txt";
+        final String addedMd5 = "123ccea2e6e506ee68b1a793c477e642";
+        remoteMap.put(addedLoc, addedMd5);
+
+        // remote entry deleted
+        final String deletedLoc = "./web/newsletter/grip-it.jpg";
+        remoteMap.remove(deletedLoc);
+
+        final RepositoryAdjustor adjustor = new RepositoryAdjustor();
+        adjustor.setLocalFileLocationToMd5Map(localMap);
+        adjustor.setRemoteFileLocationToMd5Map(remoteMap);
+        adjustor.computeFileAdjustments();
+
+        final Set<String> fileLocationsToBeModified = adjustor
+                .getFileLocationsToBeModified();
+        assertTrue(fileLocationsToBeModified.size() == 1);
+        assertTrue(fileLocationsToBeModified.contains(modLoc));
+
+        final Set<String> fileLocationsToBeAdded = adjustor
+                .getFileLocationsToBeAdded();
+        assertTrue(fileLocationsToBeAdded.size() == 1);
+        assertTrue(fileLocationsToBeAdded.contains(addedLoc));
+
+        final Set<String> fileLocationsToBeLocallyDeleted = adjustor
+                .getFileLocationsToBeLocallyDeleted();
+        assertTrue(fileLocationsToBeLocallyDeleted.size() == 1);
+        assertTrue(fileLocationsToBeLocallyDeleted.contains(deletedLoc));
+    }
+
+    private Map<String, String> getMap(final List<String> inputList) {
         final List<FileLocationMd5Pair> expectedFileLocations = getFileLocationMd5Hashes(inputList);
-        final Map<String, FileLocationMd5Pair> fileLocationToMd5HashMap = new HashMap<String, FileLocationMd5Pair>();
+        final Map<String, String> fileLocationToMd5HashMap = new HashMap<String, String>();
         for (final FileLocationMd5Pair pair : expectedFileLocations) {
             final String key = pair.getFileLocation();
-            fileLocationToMd5HashMap.put(key, pair);
+            final String value = pair.getMd5Hash();
+            fileLocationToMd5HashMap.put(key, value);
         }
         return fileLocationToMd5HashMap;
     }
