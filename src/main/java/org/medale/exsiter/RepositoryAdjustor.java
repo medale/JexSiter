@@ -1,9 +1,19 @@
 package org.medale.exsiter;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
+
+import org.eclipse.jgit.lib.Repository;
+import org.medale.io.ExsiterFileUtils;
+
+import com.google.common.io.Files;
+import com.jcraft.jsch.JSchException;
 
 /**
  * Determines adjustments that need to be made to the local repository vis a vis
@@ -48,6 +58,30 @@ public class RepositoryAdjustor {
                 this.remoteFileLocationToMd5Map, this.localFileLocationToMd5Map);
     }
 
+    /**
+     * Change local repository according to the file adjustments computed via
+     * computeFileAdjustments method. Performs necessary deletes and downloads
+     * added and modified files from remote repo. Adds, commits and tags
+     * resulting changes in local repo.
+     * 
+     * @param backupDir
+     * @param configProps
+     * @throws IOException
+     * @throws JSchException
+     */
+    public void executeFileAdjustments(final File backupDir,
+            final Properties configProps) throws IOException, JSchException {
+        final File remoteContentDir = new File(backupDir,
+                ExsiterConstants.REMOTE_CONTENT_DIR);
+        deleteLocalFiles(remoteContentDir, this.fileLocationsToBeLocallyDeleted);
+        downloadAndStoreRemoteAddedAndModifiedFiles(configProps,
+                this.fileLocationsToBeAdded, this.fileLocationsToBeModified,
+                remoteContentDir);
+
+        final Date backupDate = new Date();
+        addCommitAndTagChangesInGitRepo(backupDir, backupDate);
+    }
+
     public Set<String> getFileLocationsToBeLocallyDeleted() {
         return this.fileLocationsToBeLocallyDeleted;
     }
@@ -58,6 +92,50 @@ public class RepositoryAdjustor {
 
     public Set<String> getFileLocationsToBeAdded() {
         return this.fileLocationsToBeAdded;
+    }
+
+    protected void deleteLocalFiles(final File remoteContentDir,
+            final Set<String> fileLocationsToBeLocallyDeleted)
+            throws IOException {
+        for (final String fileLocation : fileLocationsToBeLocallyDeleted) {
+            final File fileToDelete = new File(remoteContentDir, fileLocation);
+            ExsiterFileUtils
+                    .deleteFileAndEmptyParentDirectoriesUntilStopDirectory(
+                            fileToDelete, remoteContentDir);
+        }
+    }
+
+    protected void downloadAndStoreRemoteAddedAndModifiedFiles(
+            final Properties configProps,
+            final Set<String> fileLocationsToBeAdded,
+            final Set<String> fileLocationsToBeModified,
+            final File remoteContentDir) throws JSchException, IOException {
+        final SshChannelCreator channelCreator = SshChannelCreatorFactory
+                .getSshChannelCreator(configProps);
+        final ScpTool scpTool = new ScpTool();
+        scpTool.setSshChannelCreator(channelCreator);
+        scpFiles(scpTool, remoteContentDir, fileLocationsToBeAdded);
+        scpFiles(scpTool, remoteContentDir, fileLocationsToBeModified);
+    }
+
+    protected void scpFiles(final ScpTool scpTool, final File remoteContentDir,
+            final Set<String> fileLocations) throws IOException {
+        for (final String fileLocation : fileLocations) {
+            final File localFile = new File(remoteContentDir, fileLocation);
+            Files.createParentDirs(localFile);
+            final String localFileLocation = localFile.getCanonicalPath();
+            scpTool.scpFileFrom(fileLocation, localFileLocation);
+        }
+    }
+
+    protected void addCommitAndTagChangesInGitRepo(final File backupDir,
+            final Date date) throws IOException {
+        final Repository repo = GitShell.getGitRepository(backupDir);
+        GitShell.addAllChanges(repo);
+        final String dateTag = GitShell.getDateTag(date);
+        final String commitMessage = "Backup commits for " + dateTag;
+        GitShell.commitAllChanges(repo, commitMessage);
+        GitShell.createNewTag(repo, dateTag);
     }
 
     /**

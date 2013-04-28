@@ -42,8 +42,8 @@ JexSiter
 * Get remote md5/file pair hashes SshShellCommandExecutor.LIST_ALL_FILES_AND_THEIR_CHECKSUMS 
  * Executes find . -type f | xargs md5sum
  * Returns listing of all files as pairs: 56a329926a92460b9b6ac1377f610e48 ./web/newsletter/grip-it.jpg
- * Parse into FileLocationMd5Pair and create Map<String, String> fileWithPath to its MD5 hash sum in hex
- * Store in $backupRootDir/exsiter-backup/remoteFileNameToHashMap.csv file
+ * Parse into FileLocationMd5Pair to create Map<String, String> fileWithPath to its MD5 hash sum in hex
+ * Store in $backupRootDir/exsiter-backup/remoteFileNameToMd5Map.csv file
 
 #### Compare local and remote hashes
 * Do comparison of localFileNameToMd5Map.csv and remoteFileNameToMd5Map.csv

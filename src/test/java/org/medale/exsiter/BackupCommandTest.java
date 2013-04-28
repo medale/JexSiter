@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import com.jcraft.jsch.JSchException;
@@ -32,8 +33,22 @@ public class BackupCommandTest {
     }
 
     @Test
-    public void testPerformInitialFileDownload() {
-        // TODO
-    }
+    public void testExecute() throws Exception {
+        final ApplicationConfiguration appConfig = new ApplicationConfiguration(
+                ApplicationConfigurationTest.TEST_CONFIG_LOCATION);
+        appConfig.loadConfiguration();
+        final Properties configProps = appConfig.getConfiguration();
+        final File backupDirectory = ApplicationConfiguration
+                .getExsiterBackupDirectory(configProps);
+        final File remoteContentDir = new File(backupDirectory,
+                ExsiterConstants.REMOTE_CONTENT_DIR);
 
+        if (!remoteContentDir.exists()) {
+            FileUtils.deleteDirectory(backupDirectory);
+            final InitializeCommand initCmd = new InitializeCommand();
+            initCmd.execute(appConfig);
+        }
+        final BackupCommand backupCmd = new BackupCommand();
+        backupCmd.execute(configProps);
+    }
 }

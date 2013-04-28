@@ -13,29 +13,24 @@ import com.jcraft.jsch.JSchException;
 public class BackupCommand {
     private static final Logger LOGGER = Logger.getLogger(BackupCommand.class);
 
-    public void execute(final ApplicationConfiguration appConfig)
-            throws Exception {
-        LOGGER.info("Executing initialize command with app config based on "
-                + appConfig.getConfigurationLocation());
-        appConfig.loadConfiguration();
-        final Properties configProps = appConfig.getConfiguration();
+    public void execute(final Properties configProps) throws Exception {
+        LOGGER.info("Executing Exsiter execute command...");
 
         final File backupDir = ApplicationConfiguration
                 .getExsiterBackupDirectory(configProps);
 
+        if (!backupDir.exists()) {
+            final String errMsg = "Unable to execute backup command. Must first execute initialize command to set up proper backup directory.";
+            LOGGER.error(errMsg);
+            throw new IllegalStateException(errMsg);
+        }
+
         // Step 1 - get and store current remote file locations/md5 hashes
-        final Map<String, String> remoteFileLocationToMd5Map = getRemoteFileNameToMd5Map(
+        final Map<String, String> remoteFileLocationToMd5Map = getAndStoreCurrentRemoteFileLocationsAndMd5s(
                 configProps, backupDir);
-        String mapFileName = ExsiterConstants.REMOTE_FILE_NAME_TO_MD5_MAP;
-        storeFileNameToMd5Map(backupDir, mapFileName,
-                remoteFileLocationToMd5Map);
 
         // Step 2 - get and store current local file locations/md5 hashes
-        final String startDirectoryLocation = null;
-        final Map<String, String> localFileLocationToMd5Map = LocalFileLocationToMd5MapGenerator
-                .getFileLocationToMd5Map(startDirectoryLocation);
-        mapFileName = ExsiterConstants.LOCAL_FILE_NAME_TO_MD5_MAP;
-        storeFileNameToMd5Map(backupDir, mapFileName, localFileLocationToMd5Map);
+        final Map<String, String> localFileLocationToMd5Map = getAndStoreCurrentLocalFileLocationsAndMd5s(backupDir);
 
         // Step 3
         final RepositoryAdjustor repoAdjustor = new RepositoryAdjustor();
@@ -50,6 +45,35 @@ public class BackupCommand {
         final Set<String> fileLocationsToBeLocallyDeleted = repoAdjustor
                 .getFileLocationsToBeLocallyDeleted();
 
+        System.out.println("Mod: " + fileLocationsToBeModified.size());
+        System.out.println("Added: " + fileLocationsToBeAdded.size());
+        System.out.println("Delete local: " + fileLocationsToBeLocallyDeleted);
+
+        repoAdjustor.executeFileAdjustments(backupDir, configProps);
+    }
+
+    private Map<String, String> getAndStoreCurrentLocalFileLocationsAndMd5s(
+            final File backupDir) throws Exception, IOException {
+        final File remoteContentDir = new File(backupDir,
+                ExsiterConstants.REMOTE_CONTENT_DIR);
+        final String startDirectoryLocation = remoteContentDir
+                .getAbsolutePath();
+        final Map<String, String> localFileLocationToMd5Map = LocalFileLocationToMd5MapGenerator
+                .getFileLocationToMd5Map(startDirectoryLocation);
+        final String mapFileName = ExsiterConstants.LOCAL_FILE_NAME_TO_MD5_MAP;
+        storeFileNameToMd5Map(backupDir, mapFileName, localFileLocationToMd5Map);
+        return localFileLocationToMd5Map;
+    }
+
+    protected Map<String, String> getAndStoreCurrentRemoteFileLocationsAndMd5s(
+            final Properties configProps, final File backupDir)
+            throws JSchException, IOException {
+        final Map<String, String> remoteFileLocationToMd5Map = getRemoteFileNameToMd5Map(
+                configProps, backupDir);
+        final String mapFileName = ExsiterConstants.REMOTE_FILE_NAME_TO_MD5_MAP;
+        storeFileNameToMd5Map(backupDir, mapFileName,
+                remoteFileLocationToMd5Map);
+        return remoteFileLocationToMd5Map;
     }
 
     protected Map<String, String> getRemoteFileNameToMd5Map(

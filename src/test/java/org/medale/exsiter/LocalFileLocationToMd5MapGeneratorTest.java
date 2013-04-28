@@ -4,66 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.Test;
 
 public class LocalFileLocationToMd5MapGeneratorTest {
-
-    // as user executing this test (i.e. readable files only)
-    // cd /home/test
-    // find . -type f | xargs md5sum | wc -l
-    private static final int FILE_COUNT = 3423;
-
-    @Test
-    public void testGetAllReadableFilesFromStartDirectory() throws IOException {
-        final String startDirectoryLocation = "/home/test/";
-        final Collection<File> files = LocalFileLocationToMd5MapGenerator
-                .getAllReadableFilesFromStartDirectory(startDirectoryLocation);
-        assertTrue(files.size() > 0);
-        int fileCount = 0;
-        for (final Iterator<File> iterator = files.iterator(); iterator
-                .hasNext();) {
-            final File file = iterator.next();
-            if (file.canRead()) {
-                assertTrue(file.exists() && file.isFile());
-                fileCount++;
-            }
-        }
-        assertEquals(FILE_COUNT, fileCount);
-    }
-
-    @Test
-    public void testGetFileLocationRelativeToStartDirectoryLocation() {
-        final String startDirectoryLocation = "/home/test/";
-        final String[] testInputs = { startDirectoryLocation + ".bashrc",
-                startDirectoryLocation + "web/newsletter/grip-it.jpg" };
-        final String[] exprectedOutputs = { "./.bashrc",
-                "./web/newsletter/grip-it.jpg" };
-        for (int i = 0; i < exprectedOutputs.length; i++) {
-            final String absoluteFileLocation = testInputs[i];
-            final String expectedOutput = exprectedOutputs[i];
-            final String actualOutput = LocalFileLocationToMd5MapGenerator
-                    .getFileLocationRelativeToStartDirectoryLocation(
-                            startDirectoryLocation, absoluteFileLocation);
-            assertEquals(expectedOutput, actualOutput);
-        }
-    }
-
-    @Test
-    public void testGetFileLocationRelativeToStartDirectoryLocationWithNonstandardStart() {
-        final String startDirectoryLocationWithNoEndingForwardSlash = "/home/test";
-        final String absoluteFileLocation = "/home/test/web/newsletter/grip-it.jpg";
-        final String expectedOutput = "./web/newsletter/grip-it.jpg";
-        final String actualOutput = LocalFileLocationToMd5MapGenerator
-                .getFileLocationRelativeToStartDirectoryLocation(
-                        startDirectoryLocationWithNoEndingForwardSlash,
-                        absoluteFileLocation);
-        assertEquals(expectedOutput, actualOutput);
-    }
 
     @Test
     public void testGetMd5Hash() throws Exception {

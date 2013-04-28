@@ -1,16 +1,25 @@
 package org.medale.exsiter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.medale.io.ExsiterFileUtils;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 public class RepositoryAdjustorTest {
 
@@ -109,18 +118,58 @@ public class RepositoryAdjustorTest {
 
         final Set<String> fileLocationsToBeModified = adjustor
                 .getFileLocationsToBeModified();
-        assertTrue(fileLocationsToBeModified.size() == 1);
+        assertEquals(1, fileLocationsToBeModified.size());
         assertTrue(fileLocationsToBeModified.contains(modLoc));
 
         final Set<String> fileLocationsToBeAdded = adjustor
                 .getFileLocationsToBeAdded();
-        assertTrue(fileLocationsToBeAdded.size() == 1);
+        assertEquals(1, fileLocationsToBeAdded.size());
         assertTrue(fileLocationsToBeAdded.contains(addedLoc));
 
         final Set<String> fileLocationsToBeLocallyDeleted = adjustor
                 .getFileLocationsToBeLocallyDeleted();
-        assertTrue(fileLocationsToBeLocallyDeleted.size() == 1);
+        assertEquals(1, fileLocationsToBeLocallyDeleted.size());
         assertTrue(fileLocationsToBeLocallyDeleted.contains(deletedLoc));
+    }
+
+    @Test
+    public void testDeleteLocalFiles() throws IOException {
+
+        final File tempDir = Files.createTempDir();
+        final File stopDirectory = new File(tempDir, "foo");
+        final File barParent = new File(stopDirectory, "bar");
+        final File bazParent = new File(barParent, "baz");
+        final File fileToDelete = new File(bazParent, "baz.txt");
+
+        Files.createParentDirs(fileToDelete);
+        Files.write(fileToDelete.getCanonicalPath(), fileToDelete,
+                Charsets.UTF_8);
+
+        // before
+        assertTrue(fileToDelete.exists());
+        assertTrue(bazParent.exists());
+        assertTrue(barParent.exists());
+        assertTrue(stopDirectory.exists());
+
+        final String startDirectoryLocation = stopDirectory.getAbsolutePath();
+        final String absoluteFileLocation = fileToDelete.getAbsolutePath();
+        final String relativeFileLocation = ExsiterFileUtils
+                .getFileLocationRelativeToStartDirectoryLocation(
+                        startDirectoryLocation, absoluteFileLocation);
+        final Set<String> fileLocationsToBeLocallyDeleted = new HashSet<String>();
+        fileLocationsToBeLocallyDeleted.add(relativeFileLocation);
+
+        final RepositoryAdjustor adjustor = new RepositoryAdjustor();
+        adjustor.deleteLocalFiles(stopDirectory,
+                fileLocationsToBeLocallyDeleted);
+
+        // after
+        assertFalse(fileToDelete.exists());
+        assertFalse(bazParent.exists());
+        assertFalse(barParent.exists());
+        assertTrue(stopDirectory.exists());
+
+        FileUtils.deleteDirectory(tempDir);
     }
 
     private Map<String, String> getMap(final List<String> inputList) {
