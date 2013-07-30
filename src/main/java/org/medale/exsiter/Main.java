@@ -37,6 +37,7 @@ public class Main {
         final CommandLine line = parser.parse(options, args);
         final String configLocation = line.getOptionValue(CONFIG_LOCATION);
         final ApplicationConfiguration appConfig = getApplicationConfiguration(configLocation);
+        appConfig.loadConfiguration();
         if (line.hasOption(INITIALIZE)) {
             final InitializeCommand initCmd = new InitializeCommand();
             initCmd.execute(appConfig);

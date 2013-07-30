@@ -21,7 +21,6 @@ public class InitializeCommand {
             throws IOException, JSchException {
         LOGGER.info("Executing initialize command with app config based on "
                 + appConfig.getConfigurationLocation());
-        appConfig.loadConfiguration();
         final Properties configProps = appConfig.getConfiguration();
 
         LOGGER.info("Creating backup directory...");
