@@ -4,12 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.jcraft.jsch.JSchException;
 
 public class MainTest {
 
@@ -28,8 +25,7 @@ public class MainTest {
     }
 
     @Test
-    public void testMainInit() throws IOException, ParseException,
-            JSchException {
+    public void testMainInit() throws Exception {
 
         final String[] args = { "-" + Main.CONFIG_LOCATION,
                 ApplicationConfigurationTest.TEST_CONFIG_LOCATION,

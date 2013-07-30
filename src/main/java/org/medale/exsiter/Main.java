@@ -1,14 +1,11 @@
 package org.medale.exsiter;
 
-import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
-import com.jcraft.jsch.JSchException;
 
 /**
  * Entry into exister functionality:<br>
@@ -16,10 +13,10 @@ import com.jcraft.jsch.JSchException;
  * parenthesis are optional.
  * 
  * <ol>
- * <li>Initialize: java -jar jexsiter.jar org.medale.exsiter.Main -init
+ * <li>Initialize: java -classpath jexsiter.jar org.medale.exsiter.Main -init
  * (-configLocation)
- * <li>Backup: java -jar jexsiter.jar org.medale.exsiter.Main (-configLocation)
- * $absoluteConfigLocation</li>
+ * <li>Backup: java -classpath jexsiter.jar org.medale.exsiter.Main
+ * (-configLocation) $absoluteConfigLocation</li>
  * </ol>
  * 
  * Background on GnuParser:
@@ -34,8 +31,7 @@ public class Main {
     public static final String CONFIG_LOCATION = "configLocation";
     public static final String INITIALIZE = "init";
 
-    public static void main(final String[] args) throws IOException,
-            ParseException, JSchException {
+    public static void main(final String[] args) throws Exception {
         final Options options = getOptions();
         final CommandLineParser parser = new GnuParser();
         final CommandLine line = parser.parse(options, args);
@@ -45,7 +41,9 @@ public class Main {
             final InitializeCommand initCmd = new InitializeCommand();
             initCmd.execute(appConfig);
         } else {
-
+            final BackupCommand backupCmd = new BackupCommand();
+            final Properties configProps = appConfig.getConfiguration();
+            backupCmd.execute(configProps);
         }
     }
 
