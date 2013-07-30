@@ -15,7 +15,7 @@ import com.jcraft.jsch.JSchException;
 public class SshShellCommandExecutorTest {
 
     // with ssh login to test account: find . -type f | xargs md5sum | wc -l
-    public static final int TOTAL_TEST_FILES = 3521;
+    public static final int TOTAL_TEST_FILES = 3588;
 
     @Test
     public void testGetFilesAndChecksums() throws JSchException, IOException {
@@ -29,7 +29,8 @@ public class SshShellCommandExecutorTest {
         commandExecutor.setSshChannelCreator(channelCreator);
         final List<String> results = commandExecutor
                 .getCommandOutput(ExsiterConstants.LIST_ALL_FILES_AND_THEIR_CHECKSUMS);
-        assertEquals(TOTAL_TEST_FILES, results.size());
+        final int actualFileCount = results.size();
+        assertEquals(TOTAL_TEST_FILES, actualFileCount);
         FileWriter writer = null;
         try {
             writer = new FileWriter("/tmp/test-results.txt");

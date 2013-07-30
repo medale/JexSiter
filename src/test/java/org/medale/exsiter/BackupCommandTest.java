@@ -40,15 +40,15 @@ public class BackupCommandTest {
         final Properties configProps = appConfig.getConfiguration();
         final File backupDirectory = ApplicationConfiguration
                 .getExsiterBackupDirectory(configProps);
-        final File remoteContentDir = new File(backupDirectory,
-                ExsiterConstants.REMOTE_CONTENT_DIR);
 
-        if (!remoteContentDir.exists()) {
+        if (backupDirectory.exists()) {
             FileUtils.deleteDirectory(backupDirectory);
             final InitializeCommand initCmd = new InitializeCommand();
             initCmd.execute(appConfig);
         }
+
         final BackupCommand backupCmd = new BackupCommand();
         backupCmd.execute(configProps);
+
     }
 }

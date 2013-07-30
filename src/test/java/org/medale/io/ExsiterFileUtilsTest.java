@@ -18,9 +18,9 @@ import com.google.common.io.Files;
 public class ExsiterFileUtilsTest {
 
     // as user executing this test (i.e. readable files only)
-    // cd /home/test
+    // cd /home/test/web
     // find . -type f | xargs md5sum | wc -l
-    public static final int FILE_COUNT = 3423;
+    public static final int FILE_COUNT = 3403;
 
     @Test
     public void testDeleteFileAndEmptyParentDirs() throws IOException {
@@ -54,7 +54,7 @@ public class ExsiterFileUtilsTest {
 
     @Test
     public void testGetAllReadableFilesFromStartDirectory() throws IOException {
-        final String startDirectoryLocation = "/home/test/";
+        final String startDirectoryLocation = "/home/test/web";
         final Collection<File> files = ExsiterFileUtils
                 .getAllReadableFilesFromStartDirectory(startDirectoryLocation);
         assertTrue(files.size() > 0);
