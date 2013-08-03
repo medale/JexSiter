@@ -133,7 +133,7 @@ public class RepositoryAdjustor {
             final Date date) throws IOException {
         final Repository repo = GitShell.getGitRepository(backupDir);
         GitShell.addAllChanges(repo);
-        final String dateTag = GitShell.getDateTag(date);
+        final String dateTag = GitShell.getNextAvailableDateTag(repo, date);
         final String commitMessage = "Backup commits for " + dateTag;
         GitShell.commitAllChanges(repo, commitMessage);
         GitShell.createNewTag(repo, dateTag);

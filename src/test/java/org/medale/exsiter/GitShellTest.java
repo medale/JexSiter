@@ -56,9 +56,45 @@ public class GitShellTest {
     }
 
     @Test
-    public void testGetDateTag() {
-        final String dateTag = GitShell.getDateTag(this.testDate);
-        assertEquals("2013Feb27", dateTag);
+    public void testGetDateTagSimple() throws IOException {
+        final File testHome = this.tempFolder.getRoot();
+        final Repository repo = GitShell.getGitRepository(testHome);
+        final String dateTag = GitShell.getNextAvailableDateTag(repo,
+                this.testDate);
+        assertEquals(GitShell.TAG_PREFIX + "2013Feb27", dateTag);
+    }
+
+    @Test
+    public void testGetDateTagForThirdTagOnSameDay() throws IOException {
+        final File testHome = this.tempFolder.getRoot();
+        System.out.println(testHome);
+        final Repository repo = GitShell.getGitRepository(testHome);
+        GitShell.initGitRepository(repo);
+
+        // create/tag original content
+        final String[] fileNames = { "a.txt" };
+        final String[] fileContent = fileNames;
+        writeFiles(testHome, fileNames, fileContent);
+        GitShell.addAllChanges(repo);
+        GitShell.commitAllChanges(repo, "original");
+
+        String dateTag = GitShell.getNextAvailableDateTag(repo, this.testDate);
+        GitShell.createNewTag(repo, dateTag);
+        final String expectedDatePrefix = GitShell.TAG_PREFIX + "2013Feb27";
+        assertEquals(expectedDatePrefix, dateTag);
+
+        // create/tag modified content - tag should now be 2013Feb27-1
+        FileUtils.writeStringToFile(new File(testHome, fileNames[0]), "mod");
+        GitShell.addAllChanges(repo);
+        GitShell.commitAllChanges(repo, "mod");
+        dateTag = GitShell.getNextAvailableDateTag(repo, this.testDate);
+        assertEquals(expectedDatePrefix + GitShell.SUFFIX_SEPARATOR + "1",
+                dateTag);
+        GitShell.createNewTag(repo, dateTag);
+
+        dateTag = GitShell.getNextAvailableDateTag(repo, this.testDate);
+        assertEquals(expectedDatePrefix + GitShell.SUFFIX_SEPARATOR + "2",
+                dateTag);
     }
 
     @Test
@@ -231,7 +267,8 @@ public class GitShellTest {
         commitCommand.setMessage("Commit after update.").call();
 
         final TagCommand tagCommand = git.tag();
-        final String tagName = GitShell.getDateTag(this.testDate);
+        final String tagName = GitShell.getNextAvailableDateTag(repo,
+                this.testDate);
         tagCommand.setName(tagName).call();
 
         final CloneCommand cloneCommand = Git.cloneRepository();

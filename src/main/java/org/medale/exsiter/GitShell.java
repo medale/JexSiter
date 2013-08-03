@@ -3,7 +3,9 @@ package org.medale.exsiter;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -11,9 +13,12 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListTagCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
@@ -24,11 +29,102 @@ public class GitShell {
     public static final String GIT_DIR = ".git";
     public static final String ADD_ALL_PATTERN = ".";
     public static final String TAG_PREFIX = "v";
+    public static final String SUFFIX_SEPARATOR = "-";
+    public static final String REFS_TAGS_PREFIX = "refs/tags/";
 
-    public static String getDateTag(final Date date) {
+    /**
+     * Gets a string representing the date tag for param date in yyyyMMMdd
+     * format prefixed with TAG_PREFIX, e.g. v2013Aug02. However, it checks the
+     * repo to see if that tag already exists. If it does it will create a
+     * string representing the next available date tag with a one-up serial
+     * number suffix. So if 2013Aug02 already exists, it will check for
+     * v2013Aug02-1, -2, -3 until the next unused tag is found for that date and
+     * return it.
+     * 
+     * @param repo
+     * @param date
+     * @return Next available one-up date tag for param date.
+     * @throws IOException
+     */
+    public static String getNextAvailableDateTag(final Repository repo,
+            final Date date) throws IOException {
         final String datePattern = "yyyyMMMdd";
         final SimpleDateFormat formatter = new SimpleDateFormat(datePattern);
-        return formatter.format(date);
+        final List<String> fullyQualifiedExistingTags = getFullyQualifiedExistingTags(repo);
+        final String dateTagPrefix = TAG_PREFIX + formatter.format(date);
+        final String dateTag = getNextAvailableDateTag(
+                fullyQualifiedExistingTags, dateTagPrefix);
+        return dateTag;
+    }
+
+    /**
+     * Returns list of all tags in refs/tags/tagName format.
+     * 
+     * @param repo
+     * @return
+     * @throws IOException
+     */
+    public static List<String> getFullyQualifiedExistingTags(
+            final Repository repo) throws IOException {
+        final Git git = new Git(repo);
+        final ListTagCommand listTagCommand = git.tagList();
+        final List<String> tags = new ArrayList<String>();
+        try {
+            final List<Ref> refs = listTagCommand.call();
+            for (final Ref ref : refs) {
+                // has refs/tags/ prefix
+                final String fullyQualifiedTagName = ref.getName();
+                tags.add(fullyQualifiedTagName);
+            }
+        } catch (final GitAPIException e) {
+            final String errMsg = "Unable to get lists of tags due to " + e;
+            throw new IOException(errMsg, e);
+        }
+        return tags;
+    }
+
+    protected static String getNextAvailableDateTag(
+            final List<String> fullyQualifiedExistingTags,
+            final String dateTagPrefix) {
+        String fullyQualifiedNextAvailableDateTag = REFS_TAGS_PREFIX
+                + dateTagPrefix;
+        if (isTagInUse(fullyQualifiedExistingTags,
+                fullyQualifiedNextAvailableDateTag)) {
+            // date was already used as tag - search through one-up serials
+            // until we find next available
+            int oneUpSerial = 1;
+            boolean foundNextAvailableTag = false;
+            while (!foundNextAvailableTag) {
+                fullyQualifiedNextAvailableDateTag = getFullyQualifiedTag(
+                        dateTagPrefix, oneUpSerial);
+                if (isTagInUse(fullyQualifiedExistingTags,
+                        fullyQualifiedNextAvailableDateTag)) {
+                    oneUpSerial++;
+                } else {
+                    foundNextAvailableTag = true;
+                }
+            }
+        }
+        final String nextAvailableDateTag = fullyQualifiedNextAvailableDateTag
+                .substring(REFS_TAGS_PREFIX.length());
+        return nextAvailableDateTag;
+    }
+
+    private static boolean isTagInUse(
+            final List<String> fullyQualifiedExistingTags,
+            final String fullyQualifiedTagName) {
+        return fullyQualifiedExistingTags.contains(fullyQualifiedTagName);
+    }
+
+    private static String getFullyQualifiedTag(final String dateTagPrefix,
+            final int oneUpSerial) {
+        final Object[] tagNameComponents = { REFS_TAGS_PREFIX, dateTagPrefix,
+                SUFFIX_SEPARATOR, oneUpSerial };
+        final StringBuilder builder = new StringBuilder();
+        for (final Object component : tagNameComponents) {
+            builder.append(component);
+        }
+        return builder.toString();
     }
 
     public static Repository getGitRepository(final File repoDir)
