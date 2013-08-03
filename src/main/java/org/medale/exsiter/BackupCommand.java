@@ -45,15 +45,18 @@ public class BackupCommand {
         final Set<String> fileLocationsToBeLocallyDeleted = repoAdjustor
                 .getFileLocationsToBeLocallyDeleted();
 
-        System.out.println("Mod: " + fileLocationsToBeModified.size());
-        System.out.println("Added: " + fileLocationsToBeAdded.size());
-        System.out.println("Delete local: " + fileLocationsToBeLocallyDeleted);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.info("Mod: " + fileLocationsToBeModified.size());
+            LOGGER.info("Added: " + fileLocationsToBeAdded.size());
+            LOGGER.info("Delete local: " + fileLocationsToBeLocallyDeleted);
+        }
 
         repoAdjustor.executeFileAdjustments(backupDir, configProps);
     }
 
     private Map<String, String> getAndStoreCurrentLocalFileLocationsAndMd5s(
             final File backupDir) throws Exception, IOException {
+        LOGGER.info("Computing current backup file locations and their md5 hash sums to determine differences...");
         final File remoteContentDir = new File(backupDir,
                 ExsiterConstants.REMOTE_CONTENT_DIR);
         final String startDirectoryLocation = remoteContentDir
@@ -68,6 +71,7 @@ public class BackupCommand {
     protected Map<String, String> getAndStoreCurrentRemoteFileLocationsAndMd5s(
             final Properties configProps, final File backupDir)
             throws JSchException, IOException {
+        LOGGER.info("Retrieving remote file locations and their md5 hash sums...");
         final Map<String, String> remoteFileLocationToMd5Map = getRemoteFileNameToMd5Map(
                 configProps, backupDir);
         final String mapFileName = ExsiterConstants.REMOTE_FILE_NAME_TO_MD5_MAP;

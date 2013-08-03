@@ -29,7 +29,9 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Setup: mkdir jex-repo<br>
@@ -40,6 +42,9 @@ import org.junit.Test;
  * simple-example
  */
 public class GitShellTest {
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private Date testDate;
 
@@ -58,7 +63,7 @@ public class GitShellTest {
 
     @Test
     public void testInitGitRepo() throws IOException {
-        final File testHome = getTestHome();
+        final File testHome = this.tempFolder.getRoot();
         final File expectedGitDir = new File(testHome, GitShell.GIT_DIR);
         assertFalse(expectedGitDir.exists());
         final Repository repo = GitShell.getGitRepository(testHome);
@@ -68,7 +73,7 @@ public class GitShellTest {
 
     @Test
     public void testAddAllChanges() throws IOException {
-        final File testHome = getTestHome();
+        final File testHome = this.tempFolder.getRoot();
         final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
         final String[] fileNames = { "a.txt" };
@@ -88,6 +93,37 @@ public class GitShellTest {
         assertContainsAll(Arrays.asList(fileNames), added);
     }
 
+    @Test
+    public void testAddAllChangesWithModsAndDeletes() throws IOException {
+        final File testHome = this.tempFolder.getRoot();
+        final Repository repo = GitShell.getGitRepository(testHome);
+        GitShell.initGitRepository(repo);
+        final String[] fileNames = { "a.txt", "b.txt", "c.txt" };
+        final String[] fileContent = fileNames;
+        writeFiles(testHome, fileNames, fileContent);
+        GitShell.addAllChanges(repo);
+        GitShell.commitAllChanges(repo, "original");
+        Status status = GitShell.getStatus(repo);
+        assertTrue(status.isClean());
+
+        // mod a.txt
+        FileUtils.writeStringToFile(new File(testHome, fileNames[0]), "mod");
+        // delete b.txt
+        final File bDotTxt = new File(testHome, fileNames[1]);
+        final boolean delete = bDotTxt.delete();
+        assertTrue(delete);
+        // add d.txt
+        FileUtils.writeStringToFile(new File(testHome, "d.txt"), "d.txt");
+        status = GitShell.getStatus(repo);
+        assertFalse(status.isClean());
+
+        GitShell.addAllChanges(repo);
+        GitShell.commitAllChanges(repo, "changed");
+
+        status = GitShell.getStatus(repo);
+        assertTrue(status.isClean());
+    }
+
     private void assertContainsAll(final List<String> expectedFileNames,
             final Set<String> actualFileNames) {
         assertEquals(expectedFileNames.size(), actualFileNames.size());
@@ -96,7 +132,7 @@ public class GitShellTest {
 
     @Test
     public void testCommitAllChanges() throws IOException {
-        final File testHome = getTestHome();
+        final File testHome = this.tempFolder.getRoot();
         final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
         final String[] fileNames = { "a.txt" };
@@ -111,7 +147,7 @@ public class GitShellTest {
 
     @Test
     public void testCreateNewTag() throws IOException {
-        final File testHome = getTestHome();
+        final File testHome = this.tempFolder.getRoot();
         final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
         final String[] fileNames = { "a.txt" };
@@ -138,7 +174,7 @@ public class GitShellTest {
 
     @Test
     public void testCloneRepoDir() throws IOException {
-        final File testHome = getTestHome();
+        final File testHome = this.tempFolder.getRoot();
         final Repository repo = GitShell.getGitRepository(testHome);
         GitShell.initGitRepository(repo);
         final String[] fileNames = { "a.txt" };
@@ -168,17 +204,8 @@ public class GitShellTest {
     public void testingJGitApi() throws IOException, NoFilepatternException,
             GitAPIException {
 
-        final File testHome = getTestHome();
-        final File cloneHome = new File(testHome, "clone");
-        if (cloneHome.exists()) {
-            FileUtils.deleteDirectory(cloneHome);
-        }
-
-        final boolean testHomeCreated = testHome.mkdir();
-        final boolean cloneHomeCreated = cloneHome.mkdir();
-        if (!testHomeCreated || !cloneHomeCreated) {
-            throw new IOException("Unable to create test dirs.");
-        }
+        final File testHome = this.tempFolder.getRoot();
+        final File cloneHome = this.tempFolder.newFolder();
 
         System.out.println("Created temp test dir in "
                 + testHome.getAbsolutePath());
@@ -223,15 +250,6 @@ public class GitShellTest {
         for (final File file : cloneDirFiles) {
             assertTrue(expectedFiles.contains(file));
         }
-    }
-
-    private File getTestHome() throws IOException {
-        final String tmpDir = System.getProperty("java.io.tmpdir");
-        final File testHome = new File(tmpDir, "test-git-func");
-        if (testHome.exists()) {
-            FileUtils.deleteDirectory(testHome);
-        }
-        return testHome;
     }
 
     private void writeFiles(final File testHome, final String[] fileNames,

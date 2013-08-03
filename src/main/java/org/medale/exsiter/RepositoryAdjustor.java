@@ -73,6 +73,7 @@ public class RepositoryAdjustor {
             final Properties configProps) throws IOException, JSchException {
         final File remoteContentDir = new File(backupDir,
                 ExsiterConstants.REMOTE_CONTENT_DIR);
+
         deleteLocalFiles(remoteContentDir, this.fileLocationsToBeLocallyDeleted);
         downloadAndStoreRemoteAddedAndModifiedFiles(configProps,
                 this.fileLocationsToBeAdded, this.fileLocationsToBeModified,
