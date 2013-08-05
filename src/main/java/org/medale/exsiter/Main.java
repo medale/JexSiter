@@ -14,7 +14,7 @@ import org.apache.commons.cli.Options;
  * 
  * <ol>
  * <li>Initialize: java -classpath jexsiter.jar org.medale.exsiter.Main -init
- * (-configLocation)
+ * (-configLocation) or java -jar jexsiter-0.9-SNAPSHOT.jar -init
  * <li>Backup: java -classpath jexsiter.jar org.medale.exsiter.Main
  * (-configLocation) $absoluteConfigLocation</li>
  * </ol>

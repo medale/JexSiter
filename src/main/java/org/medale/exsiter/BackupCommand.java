@@ -83,11 +83,18 @@ public class BackupCommand {
     protected Map<String, String> getRemoteFileNameToMd5Map(
             final Properties configProps, final File backupDir)
             throws JSchException, IOException {
-        final SshChannelCreator channelCreator = SshChannelCreatorFactory
-                .getSshChannelCreator(configProps);
-        final Map<String, String> fileNameToMd5Map = RemoteFileLocationToMd5MapGenerator
-                .getFileLocationToMd5Map(channelCreator);
-        channelCreator.closeSession();
+        SshChannelCreator channelCreator = null;
+        Map<String, String> fileNameToMd5Map = null;
+        try {
+            channelCreator = SshChannelCreatorFactory
+                    .getSshChannelCreator(configProps);
+            fileNameToMd5Map = RemoteFileLocationToMd5MapGenerator
+                    .getFileLocationToMd5Map(channelCreator);
+        } finally {
+            if (channelCreator != null) {
+                channelCreator.closeSession();
+            }
+        }
         return fileNameToMd5Map;
     }
 

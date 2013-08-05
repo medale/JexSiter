@@ -111,12 +111,19 @@ public class RepositoryAdjustor {
             final Set<String> fileLocationsToBeAdded,
             final Set<String> fileLocationsToBeModified,
             final File remoteContentDir) throws JSchException, IOException {
-        final SshChannelCreator channelCreator = SshChannelCreatorFactory
-                .getSshChannelCreator(configProps);
-        final ScpTool scpTool = new ScpTool();
-        scpTool.setSshChannelCreator(channelCreator);
-        scpFiles(scpTool, remoteContentDir, fileLocationsToBeAdded);
-        scpFiles(scpTool, remoteContentDir, fileLocationsToBeModified);
+        SshChannelCreator channelCreator = null;
+        try {
+            channelCreator = SshChannelCreatorFactory
+                    .getSshChannelCreator(configProps);
+            final ScpTool scpTool = new ScpTool();
+            scpTool.setSshChannelCreator(channelCreator);
+            scpFiles(scpTool, remoteContentDir, fileLocationsToBeAdded);
+            scpFiles(scpTool, remoteContentDir, fileLocationsToBeModified);
+        } finally {
+            if (channelCreator != null) {
+                channelCreator.closeSession();
+            }
+        }
     }
 
     protected void scpFiles(final ScpTool scpTool, final File remoteContentDir,
