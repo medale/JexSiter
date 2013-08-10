@@ -42,7 +42,9 @@ public class Main {
             final InitializeCommand initCmd = new InitializeCommand();
             initCmd.execute(appConfig);
         } else {
+            final SimpleHtmlBackupReporter reporter = new SimpleHtmlBackupReporter();
             final BackupCommand backupCmd = new BackupCommand();
+            backupCmd.setBackupReporter(reporter);
             final Properties configProps = appConfig.getConfiguration();
             backupCmd.execute(configProps);
         }

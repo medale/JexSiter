@@ -10,8 +10,16 @@ import org.apache.log4j.Logger;
 
 import com.jcraft.jsch.JSchException;
 
+/**
+ * Backup command used to compute difference between local file store and remote
+ * location (files added, modified, deleted) and then makes and records the
+ * adjustments needed to make local file store equal remote location. Backed by
+ * Git repository and changes are tagged.
+ */
 public class BackupCommand {
     private static final Logger LOGGER = Logger.getLogger(BackupCommand.class);
+
+    private BackupReporter backupReporter;
 
     public void execute(final Properties configProps) throws Exception {
         LOGGER.info("Executing Exsiter execute command...");
@@ -50,6 +58,11 @@ public class BackupCommand {
             LOGGER.info("Added: " + fileLocationsToBeAdded.size());
             LOGGER.info("Delete local: " + fileLocationsToBeLocallyDeleted);
         }
+
+        final File reportFile = new File(backupDir,
+                ExsiterConstants.BACKUP_REPORT);
+        this.backupReporter.createReport(reportFile.getAbsolutePath(),
+                repoAdjustor);
 
         repoAdjustor.executeFileAdjustments(backupDir, configProps);
     }
@@ -103,6 +116,14 @@ public class BackupCommand {
             throws IOException {
         final File filenameToHashMapFile = new File(backupDir, mapFileName);
         MapStore.storeMap(filenameToHashMapFile, fileNameToMd5Map);
+    }
+
+    public BackupReporter getBackupReporter() {
+        return this.backupReporter;
+    }
+
+    public void setBackupReporter(final BackupReporter backupReporter) {
+        this.backupReporter = backupReporter;
     }
 
 }

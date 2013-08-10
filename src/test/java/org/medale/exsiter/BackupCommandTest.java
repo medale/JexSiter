@@ -47,7 +47,9 @@ public class BackupCommandTest {
             initCmd.execute(appConfig);
         }
 
+        final SimpleHtmlBackupReporter reporter = new SimpleHtmlBackupReporter();
         final BackupCommand backupCmd = new BackupCommand();
+        backupCmd.setBackupReporter(reporter);
         backupCmd.execute(configProps);
 
     }

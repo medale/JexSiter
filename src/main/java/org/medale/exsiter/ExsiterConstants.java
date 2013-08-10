@@ -28,6 +28,12 @@ public class ExsiterConstants {
     public static final String LOCAL_FILE_NAME_TO_MD5_MAP = "localFileNameToMd5Map.csv";
 
     /**
+     * File under EXSITER_BACKUP_DIR in which the backup report (added, mod,
+     * deleted files) is stored.
+     */
+    public static final String BACKUP_REPORT = "backupReport.html";
+
+    /**
      * Default character encoding
      */
     public static final String DEFAULT_ENCODING = CharEncoding.UTF_8;
