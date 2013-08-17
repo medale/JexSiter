@@ -27,10 +27,11 @@ public final class ApplicationConfiguration {
     public static final String PROP_USERNAME = "username";
     public static final String PROP_HOSTNAME = "hostname";
     public static final String PROP_BACKUP_ROOT_DIR = "backupRootDir";
+    public static final String PROP_BACKUP_CRON_FREQUENCY = "backupCronFrequency";
 
     static final String[] REQUIRED_PROPERTIES = { PROP_PRIVATE_KEY_LOC,
             PROP_PRIVATE_KEY_PASS, PROP_KNOWN_HOSTS_LOC, PROP_USERNAME,
-            PROP_HOSTNAME, PROP_BACKUP_ROOT_DIR };
+            PROP_HOSTNAME, PROP_BACKUP_ROOT_DIR, PROP_BACKUP_CRON_FREQUENCY };
 
     private final String configurationLocation;
     private Properties configurationProperties;
