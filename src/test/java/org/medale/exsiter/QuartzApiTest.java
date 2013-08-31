@@ -29,7 +29,7 @@ public class QuartzApiTest {
     private static int invocationCount;
 
     @Test
-    public void testCronExpression() throws ParseException {
+    public void testCronExpressionLastFridayOfMonth() throws ParseException {
         final String lastFridayOfMonthAt10 = "0 0 10 ? * 6L";
         final CronExpression cronExpression = new CronExpression(
                 lastFridayOfMonthAt10);
@@ -57,6 +57,30 @@ public class QuartzApiTest {
         final boolean satisfiedBy2 = cronExpression.isSatisfiedBy(todayAtNoon
                 .toDate());
         assertFalse(satisfiedBy2);
+    }
+
+    @Test
+    public void testCronExpressionEveryFriday() throws ParseException {
+        final String fridaysAt10 = "0 0 10 ? * 6";
+        final CronExpression cronExpression = new CronExpression(fridaysAt10);
+        System.out.println(cronExpression.getExpressionSummary());
+
+        final DateTime now = new DateTime();
+        final int hourOfDay = 10;
+        final int minuteOfHour = 0;
+        final int secondOfMinute = 0;
+        final int millisOfSecond = 0;
+
+        final DateTime nextFriday = now.withDayOfWeek(DateTimeConstants.FRIDAY)
+                .withTime(hourOfDay, minuteOfHour, secondOfMinute,
+                        millisOfSecond);
+
+        boolean satisfiedBy = cronExpression.isSatisfiedBy(nextFriday.toDate());
+        assertTrue(satisfiedBy);
+
+        final DateTime fridayInTwoWeeks = nextFriday.plusDays(7);
+        satisfiedBy = cronExpression.isSatisfiedBy(fridayInTwoWeeks.toDate());
+        assertTrue(satisfiedBy);
     }
 
     @Test
