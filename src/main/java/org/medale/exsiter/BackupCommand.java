@@ -59,12 +59,12 @@ public class BackupCommand {
             LOGGER.info("Delete local: " + fileLocationsToBeLocallyDeleted);
         }
 
+        repoAdjustor.executeFileAdjustments(backupDir, configProps);
+
         final File reportFile = new File(backupDir,
                 ExsiterConstants.BACKUP_REPORT);
         this.backupReporter.createReport(reportFile.getAbsolutePath(),
                 repoAdjustor);
-
-        repoAdjustor.executeFileAdjustments(backupDir, configProps);
     }
 
     private Map<String, String> getAndStoreCurrentLocalFileLocationsAndMd5s(

@@ -1,6 +1,8 @@
 package org.medale.exsiter;
 
 import org.apache.commons.lang.CharEncoding;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class ExsiterConstants {
 
@@ -42,5 +44,11 @@ public class ExsiterConstants {
      * Command used to list remote/local files and their checksums
      */
     public static final String LIST_ALL_FILES_AND_THEIR_CHECKSUMS = "find . -type f | xargs md5sum";
+
+    /**
+     * Date formatter used for logging and HTML reports
+     */
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat
+            .mediumDateTime();
 
 }

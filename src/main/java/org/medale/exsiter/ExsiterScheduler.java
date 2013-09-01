@@ -9,8 +9,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.quartz.CronExpression;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.Job;
@@ -35,8 +33,6 @@ public class ExsiterScheduler {
     private static final Logger LOGGER = Logger
             .getLogger(ExsiterScheduler.class);
 
-    private static final DateTimeFormatter MEDIUM_DATE_FORMATTER = DateTimeFormat
-            .mediumDateTime();
     public static final String CONFIG_LOCATION = "configLocation";
 
     public static void main(final String[] args) throws SchedulerException,
@@ -67,7 +63,7 @@ public class ExsiterScheduler {
             if (LOGGER.isDebugEnabled()) {
                 final long instant = System.currentTimeMillis();
                 LOGGER.debug("Started run at "
-                        + MEDIUM_DATE_FORMATTER.print(instant));
+                        + ExsiterConstants.DATE_FORMATTER.print(instant));
             }
         } catch (final Exception e) {
             LOGGER.error("Program terminated due to " + e, e);
@@ -109,15 +105,18 @@ public class ExsiterScheduler {
                 final long kickOffTime = System.currentTimeMillis();
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Kicking off a new backup at "
-                            + MEDIUM_DATE_FORMATTER.print(kickOffTime));
+                            + ExsiterConstants.DATE_FORMATTER
+                                    .print(kickOffTime));
                 }
                 Main.main(args);
                 final long completedTime = System.currentTimeMillis();
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Backup timing: start="
-                            + MEDIUM_DATE_FORMATTER.print(kickOffTime)
+                            + ExsiterConstants.DATE_FORMATTER
+                                    .print(kickOffTime)
                             + "\tfinish="
-                            + MEDIUM_DATE_FORMATTER.print(completedTime));
+                            + ExsiterConstants.DATE_FORMATTER
+                                    .print(completedTime));
 
                 }
             } catch (final Exception e) {

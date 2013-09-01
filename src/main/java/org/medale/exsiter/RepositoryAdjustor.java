@@ -30,6 +30,7 @@ public class RepositoryAdjustor {
     private Set<String> fileLocationsToBeLocallyDeleted;
     private Set<String> fileLocationsToBeModified;
     private Set<String> fileLocationsToBeAdded;
+    private String gitDateTag;
 
     public void setLocalFileLocationToMd5Map(
             final Map<String, String> localFileLocationToMd5Map) {
@@ -95,6 +96,14 @@ public class RepositoryAdjustor {
         return this.fileLocationsToBeAdded;
     }
 
+    public String getGitDateTag() {
+        return this.gitDateTag;
+    }
+
+    public void setGitDateTag(final String gitDateTag) {
+        this.gitDateTag = gitDateTag;
+    }
+
     protected void deleteLocalFiles(final File remoteContentDir,
             final Set<String> fileLocationsToBeLocallyDeleted)
             throws IOException {
@@ -140,10 +149,10 @@ public class RepositoryAdjustor {
             final Date date) throws IOException {
         final Repository repo = GitShell.getGitRepository(backupDir);
         GitShell.addAllChanges(repo);
-        final String dateTag = GitShell.getNextAvailableDateTag(repo, date);
-        final String commitMessage = "Backup commits for " + dateTag;
+        this.gitDateTag = GitShell.getNextAvailableDateTag(repo, date);
+        final String commitMessage = "Backup commits for " + this.gitDateTag;
         GitShell.commitAllChanges(repo, commitMessage);
-        GitShell.createNewTag(repo, dateTag);
+        GitShell.createNewTag(repo, this.gitDateTag);
     }
 
     /**

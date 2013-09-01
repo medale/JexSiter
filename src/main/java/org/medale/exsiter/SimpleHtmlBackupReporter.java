@@ -17,25 +17,35 @@ import com.googlecode.jatl.SimpleIndenter;
 public class SimpleHtmlBackupReporter implements BackupReporter {
 
     public static final String EMPTY_STRING = "";
-    public static final String REPORT_TITLE = "Backup Report";
+    public static final String REPORT_TITLE_PREFIX = "Backup Report as of ";
+    public static final String GIT_TAG_PREFIX = "All changes tagged in Git version control under tag ";
+    public static final String NO_FILES_REPORT = "No files to report";
 
     @Override
     public void createReport(final String outputLocation,
             final RepositoryAdjustor repoAdjustor) throws IOException {
         final File outputFile = new File(outputLocation);
-        final String htmlReport = getHtmlReport(repoAdjustor);
+        final long dateTimeEpoch = System.currentTimeMillis();
+        final String htmlReport = getHtmlReport(repoAdjustor, dateTimeEpoch);
         FileUtils.writeStringToFile(outputFile, htmlReport);
     }
 
     @SuppressWarnings("rawtypes")
-    protected String getHtmlReport(final RepositoryAdjustor repoAdjustor) {
+    protected String getHtmlReport(final RepositoryAdjustor repoAdjustor,
+            final long dateTimeEpoch) {
         final StringWriter writer = new StringWriter();
         final Html html = new Html(writer);
         final Indenter indenter = getIndenterWithEmptyStringIndents();
         html.indent(indenter);
         html.html();
-        html.head().title().text(REPORT_TITLE).end(2);
+        final String title = getTitleWithDateTime(dateTimeEpoch);
+        html.head().title().text(title).end(2);
         html.body();
+        html.h1().text(title).end();
+        final String gitDateTag = repoAdjustor.getGitDateTag();
+        final String gitTagInfo = GIT_TAG_PREFIX + gitDateTag;
+        html.text(gitTagInfo);
+
         final Set<String> fileLocationsToBeAdded = repoAdjustor
                 .getFileLocationsToBeAdded();
         final Set<String> fileLocationsToBeModified = repoAdjustor
@@ -46,19 +56,32 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
                 fileLocationsToBeModified, fileLocationsToBeLocallyDeleted };
         final String[] fileSetNames = { "NewFiles", "ModifiedFiles",
                 "DeletedFiles" };
+
         for (int i = 0; i < fileSetNames.length; i++) {
             final String fileSetName = fileSetNames[i];
             html.h1().text(fileSetName);
             html.end();
-            html.ol();
             final Set locationSet = locationSets[i];
-            for (final Object location : locationSet) {
-                html.li().text(location.toString()).end();
+            final int numberOfLocations = locationSet.size();
+            if (numberOfLocations > 0) {
+                html.ol();
+                for (final Object location : locationSet) {
+                    html.li().text(location.toString()).end();
+                }
+                html.end();
+            } else {
+                html.text(NO_FILES_REPORT);
             }
-            html.end();
         }
         html.endAll();
         return writer.getBuffer().toString();
+    }
+
+    protected String getTitleWithDateTime(final long dateTimeEpoch) {
+        final String dateTime = ExsiterConstants.DATE_FORMATTER
+                .print(dateTimeEpoch);
+        final String title = REPORT_TITLE_PREFIX + dateTime;
+        return title;
     }
 
     private Indenter getIndenterWithEmptyStringIndents() {

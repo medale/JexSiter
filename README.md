@@ -26,16 +26,24 @@ JexSiter
  * username - username for target machine
  * hostname - full host name of target machine
  * backupRootDir - absolute path to the root of the backup directory
-  * contains exsiter-backup dir which is the git repo maintaining 
+  * contains exsiter-backup dir which is the git repo maintaining
+ * backupCronFrequency - cron expression for frequency of backups
+  * sec min hrs day-of-month month day-of-week optYear
+  * JAN-DEC (1-12), SUN-SAT(1-7), * all values, ? unspec day, L last
+  * Example 10 o'clock last Friday of month: 0 0 10 ? * 6L
+  * For details see Quartz CronExpression API, e.g. http://quartz-scheduler.org/api/2.0.0/org/quartz/CronExpression.html
+* Note: application.conf, id_rsa and id_rsa.pub permissions should be chmod 400!
 
 ## Concept of Operations
 
-* Run Exsiter Main class as cron job (TODO: run via Quartz?)
-* Load default configuration from $USER_HOME/.exsiter/application.conf
+* Run Exsiter Main class as cron job: java -jar exister.jar (ExsiterScheduler is default main in manifest)
+ * Loads default configuration from $USER_HOME/.exsiter/application.conf
 
 ### Startup
-
-* TODO: Ideal to manually download initial bulk files via scp -r $user@remote-machine:~/remote-dir . 
+* Currently Exsiter doesn't do the initial download using bulk. Running Exister backup would download individual files one by one,
+which would be very timeconsuming/expensive.
+ * Therefore manually download initial bulk files via scp -r $user@remote-machine:~/remote-dir (e.g. remote-dir = web) . 
+ * Note: Beware of symlinks to avoid duplicate downloads. Typically download whole web directory, let Exsiter pick up small files.
 
 #### Hash local repository and remote backup sites
 * Create local md5/file pair hashes in $backupRootDir/exsiter-backup/localFileNameToMd5Map.csv
@@ -56,16 +64,17 @@ JexSiter
    * Delete corresponding file under remote-content-dir
 
 #### Perform git add/commit/tag
-* Execute logical "git add $gitDir/exsiter-backup/" to add all the new/deleted files
+* Execute logical "git add -u $gitDir/exsiter-backup/" to add all the new/deleted files
 * Execute git commit
-* Execute git tag yyyyMMMdd to make rollback easy
-* Execute git clone to $gitDir/exister-yyyyMMMdd
+* Execute git tag "v" + yyyyMMMdd to make rollback easy (if backup gets called multiple times add -1,-2, etc.)
+
+#### Create HTML Report
+$backupRootDir/exsiter-backup/backupReport.html
 
 # TODO and Future Enhancements
 * Automate initial manual setup
-* Run Exsiter via Quartz
 * Execute search through current $gitDir/exsiter-backup/target-web-dir/ for suspicious content and flag those files
-* Download and analyze logs for suspicious content?
+* Download and analyze logs for suspicious content (big files!)
 
 # Integration Test
 Set up local user/fake directories. Use $USER_HOME/.exsiter/test/test-application.conf to contain test key/password.
@@ -81,6 +90,7 @@ Do a local login via ssh localhost and then copy .ssh/known_hosts to $USER_HOME/
  * init - brand-new Exsiter setup. Downloads target files for the first time to initialize local repository
  * backup - incremental backup against existing local repository
  * Either function can be run in test mode
+* org.medale.exsiter.ExsiterScheduler - main entry point for running Quartz scheduler, which calls main backup
  
  
 

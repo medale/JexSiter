@@ -10,7 +10,9 @@
 		<param name="File" value="exsiter.log" />
 		<param name="MaxFileSize" value="100000KB" />
 		<param name="MaxBackupIndex" value="10" />
-		<layout class="org.apache.log4j.SimpleLayout" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</layout>
 	</appender>
 	<category name="org.apache.log4j.xml">
 		<priority value="info" />
