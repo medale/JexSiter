@@ -20,7 +20,10 @@ import org.junit.Test;
 public class SimpleHtmlBackupReporterTest {
 
     private static final List<String> INPUT_LIST1 = Arrays.asList(
+            "56a329926a92460b9b6ac1377f610e49  ./web/blog/post1.txt",
+            "56a329926a92460b9b6ac1377f610e40  ./web/blog/xpost.txt",
             "56a329926a92460b9b6ac1377f610e48  ./web/newsletter/grip-it.jpg",
+            "56a329926a92460b9b6ac1377f610e41  ./web/newsletter/agrippa.jpg",
             "4d6ccea2e6e506ee68b1a793c477e617  ./web/newsletter/handstand.jpg",
             "7d6ccea2e6e506ee68b1a793c477e613  ./web/bogus/bar.baz");
 
@@ -30,19 +33,24 @@ public class SimpleHtmlBackupReporterTest {
         final Map<String, String> localMap = getMap(INPUT_LIST1);
         final Map<String, String> remoteMap = getMap(INPUT_LIST1);
 
-        // remote entry modified
-        final String modLoc = "./web/newsletter/handstand.jpg";
+        // remote entries modified
+        final String[] modLocs = { "./web/blog/xpost.txt",
+                "./web/newsletter/handstand.jpg", "./web/blog/post1.txt",
+                "./web/newsletter/agrippa.jpg" };
+        Arrays.sort(modLocs);
         final String modMd5Hash = "123ccea2e6e506ee68b1a793c477e613";
-        remoteMap.put(modLoc, modMd5Hash);
+        for (final String modLoc : modLocs) {
+            remoteMap.put(modLoc, modMd5Hash);
+        }
 
         // remote entry added
-        final String addedLoc = "./newFile.txt";
+        final String[] addedLocs = { "./newFile.txt" };
         final String addedMd5 = "123ccea2e6e506ee68b1a793c477e642";
-        remoteMap.put(addedLoc, addedMd5);
+        remoteMap.put(addedLocs[0], addedMd5);
 
         // remote entry deleted
-        final String deletedLoc = "./web/newsletter/grip-it.jpg";
-        remoteMap.remove(deletedLoc);
+        final String[] deletedLocs = { "./web/newsletter/grip-it.jpg" };
+        remoteMap.remove(deletedLocs[0]);
 
         final RepositoryAdjustor adjustor = new RepositoryAdjustor();
         adjustor.setLocalFileLocationToMd5Map(localMap);
@@ -71,20 +79,24 @@ public class SimpleHtmlBackupReporterTest {
         assertEquals(8, childNodes.size());
         final String[] fileSetNames = { "NewFiles", "ModifiedFiles",
                 "DeletedFiles" };
-        final String[] expectedFiles = { addedLoc, modLoc, deletedLoc };
+        final String[][] expectedFileArrays = { addedLocs, modLocs, deletedLocs };
         int h1NodeIndexForFileEntries = 2; // skip h1 title and git date
                                            // printout
-        for (int i = 0; i < expectedFiles.length; i++) {
-            final String expectedFile = expectedFiles[i];
+        for (int i = 0; i < expectedFileArrays.length; i++) {
             final String expectedFileSetName = fileSetNames[i];
+            final String[] expectedFiles = expectedFileArrays[i];
             final Element h1Elem = (Element) childNodes
                     .get(h1NodeIndexForFileEntries);
             assertEquals(expectedFileSetName, h1Elem.text());
             final Element olElem = (Element) childNodes
                     .get(h1NodeIndexForFileEntries + 1);
-            final Elements liElem = olElem.getElementsByTag("li");
-            assertEquals(expectedFile, liElem.text());
+            final Elements liElems = olElem.getElementsByTag("li");
             h1NodeIndexForFileEntries += 2;
+            for (int j = 0; j < expectedFiles.length; j++) {
+                final Element liElem = liElems.get(j);
+                final String expectedFile = expectedFiles[j];
+                assertEquals(expectedFile, liElem.text());
+            }
         }
     }
 

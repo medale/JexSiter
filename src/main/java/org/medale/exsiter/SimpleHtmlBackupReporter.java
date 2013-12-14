@@ -3,6 +3,9 @@ package org.medale.exsiter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -30,7 +33,7 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
         FileUtils.writeStringToFile(outputFile, htmlReport);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected String getHtmlReport(final RepositoryAdjustor repoAdjustor,
             final long dateTimeEpoch) {
         final StringWriter writer = new StringWriter();
@@ -52,8 +55,12 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
                 .getFileLocationsToBeModified();
         final Set<String> fileLocationsToBeLocallyDeleted = repoAdjustor
                 .getFileLocationsToBeLocallyDeleted();
-        final Set[] locationSets = { fileLocationsToBeAdded,
-                fileLocationsToBeModified, fileLocationsToBeLocallyDeleted };
+        final List[] sortedLocations = { new ArrayList(fileLocationsToBeAdded),
+                new ArrayList(fileLocationsToBeModified),
+                new ArrayList(fileLocationsToBeLocallyDeleted) };
+        for (final List list : sortedLocations) {
+            Collections.sort(list);
+        }
         final String[] fileSetNames = { "NewFiles", "ModifiedFiles",
                 "DeletedFiles" };
 
@@ -61,7 +68,7 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
             final String fileSetName = fileSetNames[i];
             html.h1().text(fileSetName);
             html.end();
-            final Set locationSet = locationSets[i];
+            final List locationSet = sortedLocations[i];
             final int numberOfLocations = locationSet.size();
             if (numberOfLocations > 0) {
                 html.ol();
