@@ -46,6 +46,21 @@ public class ExsiterConstants {
     public static final String LIST_ALL_FILES_AND_THEIR_CHECKSUMS = "find . -type f | xargs md5sum";
 
     /**
+     * Command used to initiate mysqldump database backup on remote machine
+     */
+    public static final String EXECUTE_DB_BACKUP = "./db_backup.sh";
+
+    /**
+     * Output for successful execution.
+     */
+    public static final String DB_BACKUP_SUCCESS = "Backup success";
+
+    /**
+     * Output for no message database backup result.
+     */
+    public static final String DB_BACKUP_NO_MSG = "Backup script returned no message.";
+
+    /**
      * Date formatter used for logging and HTML reports
      */
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat

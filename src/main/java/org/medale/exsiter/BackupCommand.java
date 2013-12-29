@@ -33,6 +33,9 @@ public class BackupCommand {
             throw new IllegalStateException(errMsg);
         }
 
+        // Step 0 - execute remote db backup
+        createRemoteDatabaseBackup(configProps);
+
         // Step 1 - get and store current remote file locations/md5 hashes
         final Map<String, String> remoteFileLocationToMd5Map = getAndStoreCurrentRemoteFileLocationsAndMd5s(
                 configProps, backupDir);
@@ -65,6 +68,29 @@ public class BackupCommand {
                 ExsiterConstants.BACKUP_REPORT);
         this.backupReporter.createReport(reportFile.getAbsolutePath(),
                 repoAdjustor);
+    }
+
+    protected void createRemoteDatabaseBackup(final Properties configProps) {
+        SshChannelCreator channelCreator = null;
+        try {
+            channelCreator = SshChannelCreatorFactory
+                    .getSshChannelCreator(configProps);
+            final String output = RemoteDatabaseBackupExecutor
+                    .executeRemoteDatabaseBackup(channelCreator);
+            if (!output.equals(ExsiterConstants.DB_BACKUP_SUCCESS)) {
+                LOGGER.error("Error while executing remote database backup: "
+                        + output);
+            } else {
+                LOGGER.info("Successfully executed remote database backup command.");
+            }
+        } catch (final Exception e) {
+            LOGGER.error("Unable to execute remote database backup due to " + e);
+        } finally {
+            if (channelCreator != null) {
+                channelCreator.closeSession();
+            }
+        }
+
     }
 
     private Map<String, String> getAndStoreCurrentLocalFileLocationsAndMd5s(

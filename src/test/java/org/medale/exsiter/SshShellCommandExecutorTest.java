@@ -15,7 +15,7 @@ import com.jcraft.jsch.JSchException;
 public class SshShellCommandExecutorTest {
 
     // with ssh login to test account: find . -type f | xargs md5sum | wc -l
-    public static final int TOTAL_TEST_FILES = 3588;
+    public static final int TOTAL_TEST_FILES = 3591;
 
     @Test
     public void testGetFilesAndChecksums() throws JSchException, IOException {
