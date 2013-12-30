@@ -123,7 +123,7 @@ public class RepositoryAdjustor {
         SshChannelCreator channelCreator = null;
         try {
             channelCreator = SshChannelCreatorFactory
-                    .getSshChannelCreator(configProps);
+                    .getSshChannelCreatorWithOpenSession(configProps);
             final ScpTool scpTool = new ScpTool();
             scpTool.setSshChannelCreator(channelCreator);
             scpFiles(scpTool, remoteContentDir, fileLocationsToBeAdded);

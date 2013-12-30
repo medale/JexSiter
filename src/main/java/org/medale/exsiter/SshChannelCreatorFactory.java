@@ -24,7 +24,7 @@ public class SshChannelCreatorFactory {
         ApplicationConfiguration appConfig = new ApplicationConfiguration();
         appConfig.loadConfiguration();
         Properties configProps = appConfig.getConfiguration();
-        return SshChannelCreatorFactory.getSshChannelCreator(configProps);
+        return SshChannelCreatorFactory.getSshChannelCreatorWithOpenSession(configProps);
     }
 
     /**
@@ -33,7 +33,7 @@ public class SshChannelCreatorFactory {
      * @return
      * @throws JSchException
      */
-    public static SshChannelCreator getSshChannelCreator(Properties configProps)
+    public static SshChannelCreator getSshChannelCreatorWithOpenSession(Properties configProps)
             throws JSchException {
         SshChannelCreator channelCreator = new SshChannelCreator();
         channelCreator.setConfigurationProperties(configProps);

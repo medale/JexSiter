@@ -26,7 +26,7 @@ public class RemoteDatabaseBackupExecutorTest {
             appConfig.loadConfiguration();
             final Properties configProps = appConfig.getConfiguration();
             final SshChannelCreator channelCreator = SshChannelCreatorFactory
-                    .getSshChannelCreator(configProps);
+                    .getSshChannelCreatorWithOpenSession(configProps);
             final String output = RemoteDatabaseBackupExecutor
                     .executeRemoteDatabaseBackup(channelCreator);
             assertEquals(ExsiterConstants.DB_BACKUP_SUCCESS, output);

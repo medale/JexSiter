@@ -74,7 +74,7 @@ public class BackupCommand {
         SshChannelCreator channelCreator = null;
         try {
             channelCreator = SshChannelCreatorFactory
-                    .getSshChannelCreator(configProps);
+                    .getSshChannelCreatorWithOpenSession(configProps);
             final String output = RemoteDatabaseBackupExecutor
                     .executeRemoteDatabaseBackup(channelCreator);
             if (!output.equals(ExsiterConstants.DB_BACKUP_SUCCESS)) {
@@ -126,7 +126,7 @@ public class BackupCommand {
         Map<String, String> fileNameToMd5Map = null;
         try {
             channelCreator = SshChannelCreatorFactory
-                    .getSshChannelCreator(configProps);
+                    .getSshChannelCreatorWithOpenSession(configProps);
             fileNameToMd5Map = RemoteFileLocationToMd5MapGenerator
                     .getFileLocationToMd5Map(channelCreator);
         } finally {
