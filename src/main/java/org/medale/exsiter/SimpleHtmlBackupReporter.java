@@ -25,12 +25,13 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
     public static final String NO_FILES_REPORT = "No files to report";
 
     @Override
-    public void createReport(final String outputLocation,
+    public String createReport(final String outputLocation,
             final RepositoryAdjustor repoAdjustor) throws IOException {
         final File outputFile = new File(outputLocation);
         final long dateTimeEpoch = System.currentTimeMillis();
         final String htmlReport = getHtmlReport(repoAdjustor, dateTimeEpoch);
         FileUtils.writeStringToFile(outputFile, htmlReport);
+        return htmlReport;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

@@ -8,6 +8,6 @@ import java.io.IOException;
  */
 public interface BackupReporter {
 
-    void createReport(final String outputLocation,
+    String createReport(final String outputLocation,
             final RepositoryAdjustor repoAdjustor) throws IOException;
 }

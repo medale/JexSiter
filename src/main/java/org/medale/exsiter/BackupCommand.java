@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.medale.mail.MailSender;
 
 import com.jcraft.jsch.JSchException;
 
@@ -59,15 +60,31 @@ public class BackupCommand {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.info("Mod: " + fileLocationsToBeModified.size());
             LOGGER.info("Added: " + fileLocationsToBeAdded.size());
-            LOGGER.info("Delete local: " + fileLocationsToBeLocallyDeleted);
+            LOGGER.info("Delete local: "
+                    + fileLocationsToBeLocallyDeleted.size());
         }
 
         repoAdjustor.executeFileAdjustments(backupDir, configProps);
 
         final File reportFile = new File(backupDir,
                 ExsiterConstants.BACKUP_REPORT);
-        this.backupReporter.createReport(reportFile.getAbsolutePath(),
-                repoAdjustor);
+        final String report = this.backupReporter.createReport(
+                reportFile.getAbsolutePath(), repoAdjustor);
+
+        // Step 4 mail report
+        final MailSender sender = new MailSender();
+        sender.configure(configProps);
+        sender.addReport(report);
+        final boolean sent = sender.send();
+        if (LOGGER.isDebugEnabled()) {
+            String msg = null;
+            if (sent) {
+                msg = "Successfully sent report via email.";
+            } else {
+                msg = "Unable to send report via email.";
+            }
+            LOGGER.debug(msg);
+        }
     }
 
     protected void createRemoteDatabaseBackup(final Properties configProps) {
