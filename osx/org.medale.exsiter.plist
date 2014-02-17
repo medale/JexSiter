@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>org.medale.exsiter</string>
+        <key>ProgramArguments</key>
+        <array>
+           <string>/Users/medale/exsiter/backup.sh</string>
+        </array>
+        <key>StartCalendarInterval</key>
+	    <dict>
+		    <key>Hour</key>
+		    <integer>19</integer>
+		    <key>Minute</key>
+		    <integer>45</integer>
+		    <key>Weekday</key>
+		    <integer>5</integer>
+	    </dict>
+	    <key>StandardOutPath</key>
+        <string>/var/log/exsiter/exsiter.log</string>
+        <key>StandardErrorPath</key>
+        <string>/var/log/exsiter/exsiter-error.log</string>
+    </dict>
+</plist>
