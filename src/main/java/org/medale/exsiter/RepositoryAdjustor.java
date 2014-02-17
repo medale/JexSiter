@@ -2,14 +2,12 @@ package org.medale.exsiter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
-import org.eclipse.jgit.lib.Repository;
 import org.medale.io.ExsiterFileUtils;
 
 import com.google.common.io.Files;
@@ -30,7 +28,6 @@ public class RepositoryAdjustor {
     private Set<String> fileLocationsToBeLocallyDeleted;
     private Set<String> fileLocationsToBeModified;
     private Set<String> fileLocationsToBeAdded;
-    private String gitDateTag;
 
     public void setLocalFileLocationToMd5Map(
             final Map<String, String> localFileLocationToMd5Map) {
@@ -79,9 +76,6 @@ public class RepositoryAdjustor {
         downloadAndStoreRemoteAddedAndModifiedFiles(configProps,
                 this.fileLocationsToBeAdded, this.fileLocationsToBeModified,
                 remoteContentDir);
-
-        final Date backupDate = new Date();
-        addCommitAndTagChangesInGitRepo(backupDir, backupDate);
     }
 
     public Set<String> getFileLocationsToBeLocallyDeleted() {
@@ -94,14 +88,6 @@ public class RepositoryAdjustor {
 
     public Set<String> getFileLocationsToBeAdded() {
         return this.fileLocationsToBeAdded;
-    }
-
-    public String getGitDateTag() {
-        return this.gitDateTag;
-    }
-
-    public void setGitDateTag(final String gitDateTag) {
-        this.gitDateTag = gitDateTag;
     }
 
     protected void deleteLocalFiles(final File remoteContentDir,
@@ -143,16 +129,6 @@ public class RepositoryAdjustor {
             final String localFileLocation = localFile.getCanonicalPath();
             scpTool.scpFileFrom(fileLocation, localFileLocation);
         }
-    }
-
-    protected void addCommitAndTagChangesInGitRepo(final File backupDir,
-            final Date date) throws IOException {
-        final Repository repo = GitShell.getGitRepository(backupDir);
-        GitShell.addAllChanges(repo);
-        this.gitDateTag = GitShell.getNextAvailableDateTag(repo, date);
-        final String commitMessage = "Backup commits for " + this.gitDateTag;
-        GitShell.commitAllChanges(repo, commitMessage);
-        GitShell.createNewTag(repo, this.gitDateTag);
     }
 
     /**

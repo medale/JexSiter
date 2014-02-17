@@ -26,17 +26,19 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
 
     @Override
     public String createReport(final String outputLocation,
-            final RepositoryAdjustor repoAdjustor) throws IOException {
+            final String gitDateTag, final RepositoryAdjustor repoAdjustor)
+            throws IOException {
         final File outputFile = new File(outputLocation);
         final long dateTimeEpoch = System.currentTimeMillis();
-        final String htmlReport = getHtmlReport(repoAdjustor, dateTimeEpoch);
+        final String htmlReport = getHtmlReport(gitDateTag, repoAdjustor,
+                dateTimeEpoch);
         FileUtils.writeStringToFile(outputFile, htmlReport);
         return htmlReport;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected String getHtmlReport(final RepositoryAdjustor repoAdjustor,
-            final long dateTimeEpoch) {
+    protected String getHtmlReport(final String gitDateTag,
+            final RepositoryAdjustor repoAdjustor, final long dateTimeEpoch) {
         final StringWriter writer = new StringWriter();
         final Html html = new Html(writer);
         final Indenter indenter = getIndenterWithEmptyStringIndents();
@@ -46,7 +48,6 @@ public class SimpleHtmlBackupReporter implements BackupReporter {
         html.head().title().text(title).end(2);
         html.body();
         html.h1().text(title).end();
-        final String gitDateTag = repoAdjustor.getGitDateTag();
         final String gitTagInfo = GIT_TAG_PREFIX + gitDateTag;
         html.text(gitTagInfo);
 

@@ -56,13 +56,13 @@ public class SimpleHtmlBackupReporterTest {
         adjustor.setLocalFileLocationToMd5Map(localMap);
         adjustor.setRemoteFileLocationToMd5Map(remoteMap);
         adjustor.computeFileAdjustments();
+
         final String gitDateTag = "v2013Feb27-1";
-        adjustor.setGitDateTag(gitDateTag);
 
         final SimpleHtmlBackupReporter reporter = new SimpleHtmlBackupReporter();
         final long dateTimeEpoch = ExsiterConstants.DATE_FORMATTER
                 .parseMillis("Feb 27, 2013 7:00:00 PM");
-        final String htmlReport = reporter.getHtmlReport(adjustor,
+        final String htmlReport = reporter.getHtmlReport(gitDateTag, adjustor,
                 dateTimeEpoch);
         System.out.println(htmlReport);
         final Document doc = Jsoup.parse(htmlReport);
@@ -111,12 +111,11 @@ public class SimpleHtmlBackupReporterTest {
         adjustor.computeFileAdjustments();
 
         final String gitDateTag = "v2013Feb27-1";
-        adjustor.setGitDateTag(gitDateTag);
 
         final SimpleHtmlBackupReporter reporter = new SimpleHtmlBackupReporter();
         final long dateTimeEpoch = ExsiterConstants.DATE_FORMATTER
                 .parseMillis("Feb 27, 2013 7:00:00 PM");
-        final String htmlReport = reporter.getHtmlReport(adjustor,
+        final String htmlReport = reporter.getHtmlReport(gitDateTag, adjustor,
                 dateTimeEpoch);
         System.out.println(htmlReport);
         final Document doc = Jsoup.parse(htmlReport);

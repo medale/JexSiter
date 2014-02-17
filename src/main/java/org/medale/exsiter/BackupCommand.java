@@ -2,11 +2,13 @@ package org.medale.exsiter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jgit.lib.Repository;
 import org.medale.mail.MailSender;
 
 import com.jcraft.jsch.JSchException;
@@ -20,7 +22,24 @@ import com.jcraft.jsch.JSchException;
 public class BackupCommand {
     private static final Logger LOGGER = Logger.getLogger(BackupCommand.class);
 
+    private String gitDateTag;
     private BackupReporter backupReporter;
+
+    public String getGitDateTag() {
+        return this.gitDateTag;
+    }
+
+    public void setGitDateTag(final String gitDateTag) {
+        this.gitDateTag = gitDateTag;
+    }
+
+    public BackupReporter getBackupReporter() {
+        return this.backupReporter;
+    }
+
+    public void setBackupReporter(final BackupReporter backupReporter) {
+        this.backupReporter = backupReporter;
+    }
 
     public void execute(final Properties configProps) throws Exception {
         LOGGER.info("Executing Exsiter execute command...");
@@ -69,7 +88,7 @@ public class BackupCommand {
         final File reportFile = new File(backupDir,
                 ExsiterConstants.BACKUP_REPORT);
         final String report = this.backupReporter.createReport(
-                reportFile.getAbsolutePath(), repoAdjustor);
+                reportFile.getAbsolutePath(), gitDateTag, repoAdjustor);
 
         // Step 4 mail report
         final MailSender sender = new MailSender();
@@ -89,6 +108,10 @@ public class BackupCommand {
         } else {
             LOGGER.debug("Sending report via email was not enabled. smtp.username not set.");
         }
+
+        // Step 5 adjust Git repository to reflect all changes
+        final Date backupDate = new Date();
+        addCommitAndTagChangesInGitRepo(backupDir, backupDate);
     }
 
     protected void createRemoteDatabaseBackup(final Properties configProps) {
@@ -165,12 +188,13 @@ public class BackupCommand {
         MapStore.storeMap(filenameToHashMapFile, fileNameToMd5Map);
     }
 
-    public BackupReporter getBackupReporter() {
-        return this.backupReporter;
+    protected void addCommitAndTagChangesInGitRepo(final File backupDir,
+            final Date date) throws IOException {
+        final Repository repo = GitShell.getGitRepository(backupDir);
+        GitShell.addAllChanges(repo);
+        this.gitDateTag = GitShell.getNextAvailableDateTag(repo, date);
+        final String commitMessage = "Backup commits for " + this.gitDateTag;
+        GitShell.commitAllChanges(repo, commitMessage);
+        GitShell.createNewTag(repo, this.gitDateTag);
     }
-
-    public void setBackupReporter(final BackupReporter backupReporter) {
-        this.backupReporter = backupReporter;
-    }
-
 }
