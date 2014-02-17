@@ -74,16 +74,20 @@ public class BackupCommand {
         // Step 4 mail report
         final MailSender sender = new MailSender();
         sender.configure(configProps);
-        sender.addReport(report);
-        final boolean sent = sender.send();
-        if (LOGGER.isDebugEnabled()) {
-            String msg = null;
-            if (sent) {
-                msg = "Successfully sent report via email.";
-            } else {
-                msg = "Unable to send report via email.";
+        if (sender.isEnabled()) {
+            sender.addReport(report);
+            final boolean sent = sender.send();
+            if (LOGGER.isDebugEnabled()) {
+                String msg = null;
+                if (sent) {
+                    msg = "Successfully sent report via email.";
+                } else {
+                    msg = "Unable to send report via email.";
+                }
+                LOGGER.debug(msg);
             }
-            LOGGER.debug(msg);
+        } else {
+            LOGGER.debug("Sending report via email was not enabled. smtp.username not set.");
         }
     }
 

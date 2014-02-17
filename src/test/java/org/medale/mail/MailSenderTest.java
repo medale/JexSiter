@@ -1,6 +1,7 @@
 package org.medale.mail;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -13,6 +14,21 @@ import org.medale.exsiter.ApplicationConfigurationTest;
 public class MailSenderTest {
 
     @Test
+    public void testSendConfigureSunnyDayNotEnabled() throws IOException {
+        final ApplicationConfiguration appConfig = new ApplicationConfiguration(
+                ApplicationConfigurationTest.TEST_CONFIG_LOCATION);
+        appConfig.loadConfiguration();
+        final Properties configProps = appConfig.getConfiguration();
+        configProps.remove(MailSender.PROP_SMTP_USERNAME);
+        configProps.remove(MailSender.PROP_SMTP_PASSWORD);
+
+        final MailSender sender = new MailSender();
+        sender.configure(configProps);
+
+        assertFalse(sender.isEnabled());
+    }
+
+    @Test
     public void testSendConfigureSunnyDay() throws IOException {
         final ApplicationConfiguration appConfig = new ApplicationConfiguration(
                 ApplicationConfigurationTest.TEST_CONFIG_LOCATION);
@@ -21,6 +37,8 @@ public class MailSenderTest {
         final Properties configProps = appConfig.getConfiguration();
         final MailSender sender = new MailSender();
         sender.configure(configProps);
+
+        assertTrue(sender.isEnabled());
 
         final String[] actualConfigProps = { sender.getSmtpUsername(),
                 sender.getSmtpPassword(), sender.getSmtpSender(),
@@ -90,8 +108,8 @@ public class MailSenderTest {
         final Properties configProps = appConfig.getConfiguration();
         final MailSender sender = new MailSender();
         sender.configure(configProps);
-        sender.addReport("<html><body><h1>Testing send...</h1>\n");
-        sender.addReport("<h5>With two reports...</h5></body></html>");
+        sender.addReport("<html><body><h1>Testing send...End report1</h1>\n");
+        sender.addReport("Start report2: <h5>With two reports...</h5>End report2</body></html>");
         final boolean sent = sender.send();
         assertTrue(sent);
     }

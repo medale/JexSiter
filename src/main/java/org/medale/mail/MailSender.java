@@ -28,6 +28,7 @@ public class MailSender {
     public static final String PROP_SMTP_SENDER = "smtp.sender";
     public static final String PROP_SMTP_RECIPIENTS = "smtp.recipients";
 
+    private boolean enabled;
     private String smtpUsername;
     private String smtpPassword;
     private String smtpSender;
@@ -63,16 +64,37 @@ public class MailSender {
         this.reports.add(report);
     }
 
+    /**
+     * Configure the optional mail sender. If PROP_SMTP_USERNAME is defined, try
+     * to load other mandatory mail configurations. Will fail if required
+     * property is not defined. Mark mail sender as enabled. If
+     * PROP_SMTP_USERNAME is not defined, mark mail sender as not enabled and do
+     * not check for other properties.
+     * 
+     * @param configProps
+     */
     public void configure(final Properties configProps) {
-        this.smtpUsername = getRequiredPropertyOrThrowException(configProps,
-                PROP_SMTP_USERNAME);
-        this.smtpPassword = getRequiredPropertyOrThrowException(configProps,
-                PROP_SMTP_PASSWORD);
-        this.smtpSender = getRequiredPropertyOrThrowException(configProps,
-                PROP_SMTP_SENDER);
-        this.smtpRecipients = getRequiredPropertyOrThrowException(configProps,
-                PROP_SMTP_RECIPIENTS);
-        this.javaMailProps = getJavaMailProps(configProps);
+        this.smtpUsername = configProps.getProperty(PROP_SMTP_USERNAME);
+        if (this.smtpUsername != null) {
+            this.smtpPassword = getRequiredPropertyOrThrowException(
+                    configProps, PROP_SMTP_PASSWORD);
+            this.smtpSender = getRequiredPropertyOrThrowException(configProps,
+                    PROP_SMTP_SENDER);
+            this.smtpRecipients = getRequiredPropertyOrThrowException(
+                    configProps, PROP_SMTP_RECIPIENTS);
+            this.javaMailProps = getJavaMailProps(configProps);
+            this.enabled = true;
+        } else {
+            this.enabled = false;
+        }
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
     }
 
     protected String getRequiredPropertyOrThrowException(

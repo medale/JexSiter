@@ -20,23 +20,39 @@ JexSiter
 
 ## Configuration
 * Default config under $USER_HOME/.exsiter/application.conf
- * privateKeyLocation - id_rsa private key (id_rsa.pub must set up as .ssh/authorized_keys on target machine)
- * privateKeyPassphrase - password for id_rsa private key
- * knownHostsLocation - must contain target machine (log in to target via ssh, could point to $USER_HOME/.ssh/known_hosts)
- * username - username for target machine
- * hostname - full host name of target machine
- * backupRootDir - absolute path to the root of the backup directory
-  * contains exsiter-backup dir which is the git repo maintaining
- * backupCronFrequency - cron expression for frequency of backups
-  * sec min hrs day-of-month month day-of-week optYear
-  * JAN-DEC (1-12), SUN-SAT(1-7), * all values, ? unspec day, L last
-  * Example 10 o'clock last Friday of month: 0 0 10 ? * 6L
-  * For details see Quartz CronExpression API, e.g. http://quartz-scheduler.org/api/2.0.0/org/quartz/CronExpression.html
-* Note: application.conf, id_rsa and id_rsa.pub permissions should be chmod 400!
+* Note: application.conf, id_rsa and id_rsa.pub permissions should be chmod 400 (only readable by user)!
+
+### Required Settings
+* privateKeyLocation - id_rsa private key (id_rsa.pub must set up as .ssh/authorized_keys on target machine)
+* privateKeyPassphrase - password for id_rsa private key
+* knownHostsLocation - must contain target machine (log in to target via ssh, could point to $USER_HOME/.ssh/known_hosts)
+* username - username for target machine
+* hostname - full host name of target machine
+* backupRootDir - absolute path to the root of the backup directory
+ * contains exsiter-backup dir which is the git repo maintaining
+ 
+### Optional Settings
+#### Mail Report settings
+* smtp.username - name used to log in to mail provider (for example, tester123@gmail.com). If not provided, email will be disabled.
+ * smtp.password - password for user at mail provider
+ * mail.smtp.auth - set to true to enable auth (e.g. true for GMail)
+ * mail.smtp.starttls.enable - set to true to enable tls (e.g. true for GMail)
+ * mail.smtp.host - host name of mail provider (e.g. GMail uses smtp.gmail.com)
+ * mail.smtp.port - port used for provider (e.g. GMail uses 587)
+ * smtp.sender - for example, a@b.com
+ * smtp.recipients - comma-separated list of all recipients (a@b.com,d@f.com...)
+
+#### Using Java-based cron via Quartz
+Must run org.medale.exsiter.ExsiterScheduler
+* backupCronFrequency - cron expression for frequency of backups
+ * sec min hrs day-of-month month day-of-week optYear
+ * JAN-DEC (1-12), SUN-SAT(1-7), * all values, ? unspec day, L last
+ * Example 10 o'clock last Friday of month: 0 0 10 ? * 6L
+ * For details see Quartz CronExpression API, e.g. http://quartz-scheduler.org/api/2.0.0/org/quartz/CronExpression.html
 
 ## Concept of Operations
 
-* Run Exsiter Main class as cron job: java -jar exister.jar (ExsiterScheduler is default main in manifest)
+* Run Exsiter Main class as cron job: java -jar exister.jar (Main is default main in manifest)
  * Loads default configuration from $USER_HOME/.exsiter/application.conf
 
 ### Startup
